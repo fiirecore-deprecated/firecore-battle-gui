@@ -1,0 +1,14 @@
+[package]
+name = "battle-gui"
+version = "0.5.0-beta.2021-07-04"
+authors = ["Rhys Holloway <rhyswilliamholloway@gmail.com>"]
+edition = "2018"
+
+[features]
+default = ["audio"]
+audio = ["firecore-pokedex-game/audio"]
+
+[dependencies]
+log = "0.4"
+firecore-battle = { git = "https://github.com/DoNotDoughnut/firecore-battle" }
+firecore-pokedex-game = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-game" }
