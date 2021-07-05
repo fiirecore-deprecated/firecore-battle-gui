@@ -66,15 +66,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
-name = "battle-gui"
-version = "0.5.0-beta.2021-07-04"
-dependencies = [
- "firecore-battle",
- "firecore-pokedex-game",
- "log",
-]
-
-[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -219,6 +210,15 @@ dependencies = [
  "firecore-pokedex",
  "log",
  "serde",
+]
+
+[[package]]
+name = "firecore-battle-gui"
+version = "0.5.0-beta.2021-07-04"
+dependencies = [
+ "firecore-battle",
+ "firecore-pokedex-game",
+ "log",
 ]
 
 [[package]]
