@@ -11,4 +11,4 @@ audio = ["firecore-pokedex-game/audio"]
 [dependencies]
 log = "0.4"
 firecore-battle = { git = "https://github.com/DoNotDoughnut/firecore-battle" }
-firecore-pokedex-game = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-game" }
+firecore-pokedex-game = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-game", default-features = false }
