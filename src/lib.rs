@@ -1,5 +1,5 @@
-extern crate firecore_pokedex_game as pokedex;
-extern crate firecore_battle as battle;
+pub extern crate firecore_pokedex_game as pokedex;
+pub extern crate firecore_battle as battle;
 
 use std::{collections::VecDeque, rc::Rc};
 
