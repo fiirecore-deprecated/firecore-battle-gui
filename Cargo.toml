@@ -6,9 +6,9 @@ edition = "2018"
 
 [features]
 default = ["audio"]
-audio = ["firecore-pokedex-game/audio"]
+audio = ["firecore-pokedex-client/audio"]
 
 [dependencies]
 log = "0.4"
 firecore-battle = { git = "https://github.com/DoNotDoughnut/firecore-battle" }
-firecore-pokedex-game = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-game", default-features = false }
+firecore-pokedex-client = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-client", default-features = false }

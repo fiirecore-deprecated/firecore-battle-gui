@@ -134,21 +134,6 @@ pub(crate) fn on_replace(text: &mut TextDisplay, user: &str, coming: Option<&dyn
     }
 }
 
-// #[deprecated(note = "todo")]
-// pub(crate) fn add_persistent_move(text: &mut TextDisplay, persistent: &game::pokedex::moves::persistent::PersistentMoveInstance, target: &PokemonInstance) {
-//     text.push(MessagePage::new(match persistent.actions {
-//         game::pokedex::moves::script::MoveActionType::Damage(..) => {
-//             vec![format!("{} was hurt by {}!", target.name(), persistent.pokemon_move.value().name)]
-//         }
-//         game::pokedex::moves::script::MoveActionType::Status(.., effect) => {
-//             vec![format!("{} was afflicted by {:?}!", target.name(), effect)]
-//         }
-//         game::pokedex::moves::script::MoveActionType::Drain(..) => {
-//             vec![format!("{} was drained by {}!", target.name(), persistent.pokemon_move.value().name)]
-//         }
-//     }, None));
-// }
-
 pub(crate) fn on_faint(
     text: &mut TextDisplay,
     is_wild: bool,

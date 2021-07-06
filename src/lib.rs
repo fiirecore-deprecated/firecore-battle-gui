@@ -1,4 +1,4 @@
-pub extern crate firecore_pokedex_game as pokedex;
+pub extern crate firecore_pokedex_client as pokedex;
 pub extern crate firecore_battle as battle;
 
 use std::{collections::VecDeque, rc::Rc};
