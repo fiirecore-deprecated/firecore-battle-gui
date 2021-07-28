@@ -108,9 +108,9 @@ checksum = "9c59e7af012c713f529e7a3ee57ce9b31ddd858d4b512923602f74608b009631"
 
 [[package]]
 name = "bytemuck"
-version = "1.7.0"
+version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9966d2ab714d0f785dbac0a0396251a35280aeb42413281617d0209ab4898435"
+checksum = "72957246c41db82b8ef88a5486143830adeb8227ef9837740bdec67724cf2c5b"
 
 [[package]]
 name = "byteorder"
@@ -120,9 +120,9 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "cc"
-version = "1.0.68"
+version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a72c244c1ff497a746a7e1fb3d14bd08420ecda70c8f25c7112f2781652d787"
+checksum = "e70cc2f62c6ce1868963827bd677764c62d07c3d9a3e1fb1177ee1a9ab199eb2"
 
 [[package]]
 name = "cexpr"
@@ -223,6 +223,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "4.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e77a43b28d0668df09411cb0bc9a8c2adc40f9a048afe863e05fd43251e8e39c"
+dependencies = [
+ "cfg-if 1.0.0",
+ "num_cpus",
+]
+
+[[package]]
 name = "deflate"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -294,18 +304,18 @@ dependencies = [
 
 [[package]]
 name = "firecore-battle"
-version = "0.5.0-beta.2021-07-04"
-source = "git+https://github.com/DoNotDoughnut/firecore-battle#9712ab2cc5cf74fd6e87b18908a714b36ff2b7f9"
+version = "0.5.0-beta.2021-07-27"
+source = "git+https://github.com/DoNotDoughnut/firecore-battle#f28509f56ee4b7899398dd77bd4dfe4894f813ed"
 dependencies = [
- "firecore-dependencies",
  "firecore-pokedex",
  "log",
+ "rand",
  "serde",
 ]
 
 [[package]]
 name = "firecore-battle-gui"
-version = "0.5.0-beta.2021-07-04"
+version = "0.5.0-beta.2021-07-28"
 dependencies = [
  "firecore-battle",
  "firecore-pokedex-client",
@@ -314,58 +324,59 @@ dependencies = [
 
 [[package]]
 name = "firecore-dependencies"
-version = "0.5.0-beta.2021-07-05"
-source = "git+https://github.com/DoNotDoughnut/firecore-dependencies#d198f00ae9d88f7186de7d619dfeed1ec2c077cf"
+version = "0.5.0-beta.2021-07-27"
+source = "git+https://github.com/DoNotDoughnut/firecore-dependencies#0a734a4fe991bb59b7e7b017e3126951389937c4"
+dependencies = [
+ "tinystr",
+]
+
+[[package]]
+name = "firecore-engine"
+version = "0.2.0"
+source = "git+https://github.com/DoNotDoughnut/firecore-engine#3917ba467aef77da6e891455860fb26c39295b2a"
+dependencies = [
+ "dashmap",
+ "enum-map",
+ "firecore-audio",
+ "firecore-text",
+ "hashbrown",
+ "log",
+ "serde",
+ "tetra",
+]
+
+[[package]]
+name = "firecore-pokedex"
+version = "0.5.0-beta.2021-07-27"
+source = "git+https://github.com/DoNotDoughnut/firecore-pokedex#caf4321db84253e5c094eb6d3ea4078e158f588e"
 dependencies = [
  "arrayvec",
+ "hashbrown",
+ "itoa",
+ "rand",
+ "rhai",
+ "serde",
+ "tinystr",
+]
+
+[[package]]
+name = "firecore-pokedex-client"
+version = "0.5.0-beta.2021-07-27"
+source = "git+https://github.com/DoNotDoughnut/firecore-pokedex-client#f3c08f1f82e422503ddecdfa9c3873242b667601"
+dependencies = [
+ "atomic",
+ "firecore-engine",
+ "firecore-pokedex",
  "hashbrown",
  "serde",
  "tinystr",
 ]
 
 [[package]]
-name = "firecore-engine"
-version = "0.1.0"
-source = "git+https://github.com/DoNotDoughnut/firecore-engine#f461123db36c4d656ac8bf724559d97ca8d22228"
+name = "firecore-text"
+version = "0.5.0-2021-07-26"
+source = "git+https://github.com/DoNotDoughnut/firecore-text#88dad5ce0a0f438b80ceaa18f21a2cf49a893f52"
 dependencies = [
- "enum-map",
- "firecore-audio",
- "firecore-font",
- "hashbrown",
- "log",
- "parking_lot",
- "serde",
- "tetra",
-]
-
-[[package]]
-name = "firecore-font"
-version = "0.5.0-2021-07-05"
-source = "git+https://github.com/DoNotDoughnut/firecore-font#50b02791d61daff006f06fe5df719c65d417462b"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "firecore-pokedex"
-version = "0.5.0-beta.2021-07-04"
-source = "git+https://github.com/DoNotDoughnut/firecore-pokedex#86412418471128578806882d743da79fdc65026e"
-dependencies = [
- "firecore-dependencies",
- "itoa",
- "rhai",
- "serde",
-]
-
-[[package]]
-name = "firecore-pokedex-client"
-version = "0.5.0-beta.2021-06-19"
-source = "git+https://github.com/DoNotDoughnut/firecore-pokedex-client#86bcae703a431bf70bdfa131d659b882a7f3bcc2"
-dependencies = [
- "atomic",
- "firecore-dependencies",
- "firecore-engine",
- "firecore-pokedex",
  "serde",
 ]
 
@@ -430,6 +441,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hermit-abi"
+version = "0.1.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "image"
 version = "0.23.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -446,9 +466,9 @@ dependencies = [
 
 [[package]]
 name = "instant"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61124eeebbd69b8190558df225adf7e4caafce0d743919e5d6b19652314ec5ec"
+checksum = "bee0328b1209d157ef001c94dd85b4f8f64139adb0eac2659f4b08382b2f474d"
 dependencies = [
  "cfg-if 1.0.0",
 ]
@@ -493,9 +513,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.97"
+version = "0.2.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12b8adadd720df158f4d70dfe7ccc6adb0472d7c55ca83445f6a5ab3e36f8fb6"
+checksum = "320cfe77175da3a483efed4bc0adc1968ca050b098ce4f2f1c13a56626128790"
 
 [[package]]
 name = "libloading"
@@ -505,15 +525,6 @@ checksum = "6f84d96438c15fcd6c3f244c8fce01d1e2b9c6b5623e9c711dc9286d8fc92d6a"
 dependencies = [
  "cfg-if 1.0.0",
  "winapi",
-]
-
-[[package]]
-name = "lock_api"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0382880606dff6d15c9476c416d18690b72742aa7b605bb6dd6ec9030fbf07eb"
-dependencies = [
- "scopeguard",
 ]
 
 [[package]]
@@ -634,6 +645,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_cpus"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
+dependencies = [
+ "hermit-abi",
+ "libc",
+]
+
+[[package]]
 name = "ogg"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -647,31 +668,6 @@ name = "once_cell"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "692fcb63b64b1758029e0a96ee63e049ce8c5948587f2f7208df04625e5f6b56"
-
-[[package]]
-name = "parking_lot"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d7744ac029df22dca6284efe4e898991d28e3085c706c972bcd7da4a27a15eb"
-dependencies = [
- "instant",
- "lock_api",
- "parking_lot_core",
-]
-
-[[package]]
-name = "parking_lot_core"
-version = "0.8.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa7a782938e745763fe6907fc6ba86946d72f49fe7e21de074e08128a99fb018"
-dependencies = [
- "cfg-if 1.0.0",
- "instant",
- "libc",
- "redox_syscall",
- "smallvec",
- "winapi",
-]
 
 [[package]]
 name = "peeking_take_while"
@@ -698,10 +694,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc-macro2"
-version = "1.0.27"
+name = "ppv-lite86"
+version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0d8caf72986c1a598726adc988bb5984792ef84f5ee5aa50209145ee8077038"
+checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
+
+[[package]]
+name = "proc-macro2"
+version = "1.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c7ed8b8c7b886ea3ed7dde405212185f423ab44682667c8c6dd14aa1d9f6612"
 dependencies = [
  "unicode-xid",
 ]
@@ -713,6 +715,46 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d0b9745dc2debf507c8422de05d7226cc1f0644216dfdfead988f9b1ab32a7"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "rand"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e7573632e6454cf6b99d7aac4ccca54be06da05aca2ef7423d22d27d4d4bcd8"
+dependencies = [
+ "libc",
+ "rand_chacha",
+ "rand_core",
+ "rand_hc",
+]
+
+[[package]]
+name = "rand_chacha"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
+dependencies = [
+ "ppv-lite86",
+ "rand_core",
+]
+
+[[package]]
+name = "rand_core"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
+dependencies = [
+ "getrandom",
+]
+
+[[package]]
+name = "rand_hc"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d51e9f596de227fda2ea6c84607f5558e196eeaf43c986b724ba4fb8fdf497e7"
+dependencies = [
+ "rand_core",
 ]
 
 [[package]]
@@ -757,9 +799,9 @@ dependencies = [
 
 [[package]]
 name = "rhai_codegen"
-version = "0.4.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cef02442abe487cae95ff290222c846d7a60f173287cbd5254190f90bc4b11d"
+checksum = "4a340b02636b22e61d94ee53e6bcc2d01d339958766b2003b860d178ccf5ae5e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -791,12 +833,6 @@ checksum = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
 dependencies = [
  "semver",
 ]
-
-[[package]]
-name = "scopeguard"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 
 [[package]]
 name = "sdl2"
@@ -889,9 +925,9 @@ checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
 
 [[package]]
 name = "smartstring"
-version = "0.2.7"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29620fe111ceaba7a50fd806b5f44c1ef44a697a739f6677a4464c7ea8685997"
+checksum = "31aa6a31c0c2b21327ce875f7e8952322acfcfd0c27569a6e18a647281352c9b"
 dependencies = [
  "static_assertions",
 ]
@@ -910,9 +946,9 @@ checksum = "ef5430c8e36b713e13b48a9f709cc21e046723fe44ce34587b73a830203b533e"
 
 [[package]]
 name = "syn"
-version = "1.0.73"
+version = "1.0.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f71489ff30030d2ae598524f61326b902466f72a0fb1a8564c001cc63425bcc7"
+checksum = "1873d832550d4588c3dbc20f01361ab00bfe741048f71e3fecf145a7cc18b29c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -933,7 +969,7 @@ dependencies = [
 [[package]]
 name = "tetra"
 version = "0.6.5"
-source = "git+https://github.com/DoNotDoughnut/tetra?branch=main#89e88c84f567916ba0ffd3f0e968d1735ff24b89"
+source = "git+https://github.com/DoNotDoughnut/tetra?branch=main#ca767b6e4a175fcf7fccc7b0a19ebd739492b1ce"
 dependencies = [
  "bytemuck",
  "glow",
@@ -970,9 +1006,9 @@ dependencies = [
 
 [[package]]
 name = "tinystr"
-version = "0.4.7"
+version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4bbe33cb8f36dc886f2de095af6c7aefd2b36a4f084081885054ad964422b46f"
+checksum = "01e8700bce17d12d9653596139d85039dd63b8728839a9f2e0c540d5301ea0cd"
 dependencies = [
  "serde",
  "tinystr-macros",
@@ -990,15 +1026,15 @@ dependencies = [
 
 [[package]]
 name = "tinystr-raw"
-version = "0.1.1"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b975dd2af5824896acaeebf7336471fcafebfa417da0a290ded5509f297ccedb"
+checksum = "10f87ef8b0485e4efff5cac95608adc3251e412fef6039ecd56c5618c8003895"
 
 [[package]]
 name = "tinyvec"
-version = "1.2.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b5220f05bb7de7f3f53c7c065e1199b3172696fe2db9f9c4d8ad9b4ee74c342"
+checksum = "848a1e1181b9f6753b5e96a092749e29b11d19ede67dfbbd6c7dc7e0f49b5338"
 dependencies = [
  "tinyvec_macros",
 ]

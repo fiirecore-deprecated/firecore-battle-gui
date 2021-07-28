@@ -1,25 +1,28 @@
 use pokedex::{
+    context::PokedexClientContext,
     engine::{
-        util::Reset,
         graphics::position,
         tetra::{
-            Context,
+            graphics::{Color, Rectangle, Texture},
             math::Vec2,
-            graphics::{
-                Color,
-                Texture,
-                Rectangle,
-            }
+            Context,
         },
+        util::Reset,
     },
     pokemon::PokemonId,
-    texture::{PokemonTexture, pokemon_texture},
+    texture::PokemonTexture,
 };
 
-use crate::ui::{BattleGuiPosition, BattleGuiPositionIndex};
+use crate::{
+    context::BattleGuiContext,
+    ui::{BattleGuiPosition, BattleGuiPositionIndex},
+};
 
-use self::{faint::Faint, flicker::Flicker, spawner::{Spawner, SpawnerState}};
-
+use self::{
+    faint::Faint,
+    flicker::Flicker,
+    spawner::{Spawner, SpawnerState},
+};
 
 mod moves;
 mod status;
@@ -28,12 +31,11 @@ pub use moves::*;
 pub use status::*;
 pub mod bounce;
 
-pub mod flicker;
 pub mod faint;
+pub mod flicker;
 pub mod spawner;
 
 pub struct PokemonRenderer {
-
     pub moves: MoveRenderer,
 
     pub pokemon: Option<Texture>,
@@ -44,12 +46,14 @@ pub struct PokemonRenderer {
     pub spawner: Spawner,
     pub faint: Faint,
     pub flicker: Flicker,
-
 }
 
 impl PokemonRenderer {
-
-    pub fn new(ctx: &mut Context, index: BattleGuiPositionIndex, side: PokemonTexture) -> Self {
+    pub fn new(
+        ctx: &BattleGuiContext,
+        index: BattleGuiPositionIndex,
+        side: PokemonTexture,
+    ) -> Self {
         Self {
             moves: MoveRenderer::new(index.position),
             pokemon: None,
@@ -61,9 +65,15 @@ impl PokemonRenderer {
         }
     }
 
-    pub fn with(ctx: &mut Context, index: BattleGuiPositionIndex, pokemon: Option<PokemonId>, side: PokemonTexture) -> Self {
+    pub fn with(
+        ctx: &BattleGuiContext,
+        dex: &PokedexClientContext,
+        index: BattleGuiPositionIndex,
+        pokemon: Option<PokemonId>,
+        side: PokemonTexture,
+    ) -> Self {
         Self {
-            pokemon: pokemon.map(|pokemon| pokemon_texture(&pokemon, side).clone()),
+            pokemon: pokemon.map(|pokemon| dex.pokemon_textures.get(&pokemon, side).clone()),
             spawner: Spawner::new(ctx, pokemon),
             ..Self::new(ctx, index, side)
         }
@@ -77,9 +87,9 @@ impl PokemonRenderer {
         }
     }
 
-    pub fn new_pokemon(&mut self, pokemon: Option<PokemonId>) {
+    pub fn new_pokemon(&mut self, dex: &PokedexClientContext, pokemon: Option<PokemonId>) {
         self.spawner.id = pokemon;
-        self.pokemon = pokemon.map(|pokemon| pokemon_texture(&pokemon, self.side).clone());
+        self.pokemon = pokemon.map(|pokemon| dex.pokemon_textures.get(&pokemon, self.side).clone());
         self.reset();
     }
 
@@ -89,7 +99,7 @@ impl PokemonRenderer {
     }
 
     pub fn faint(&mut self) {
-        if let Some(texture) =self.pokemon.as_ref() {
+        if let Some(texture) = self.pokemon.as_ref() {
             self.faint.fainting = true;
             self.faint.remaining = texture.height() as f32;
         }
@@ -115,12 +125,18 @@ impl PokemonRenderer {
                         );
                     }
                 } else {
-                    texture.draw(ctx, position(pos.x + self.moves.pokemon_x(), pos.y - texture.height() as f32).color(color));
+                    texture.draw(
+                        ctx,
+                        position(
+                            pos.x + self.moves.pokemon_x(),
+                            pos.y - texture.height() as f32,
+                        )
+                        .color(color),
+                    );
                 }
             }
         }
     }
-
 }
 
 impl Reset for PokemonRenderer {

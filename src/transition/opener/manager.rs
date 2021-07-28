@@ -1,18 +1,14 @@
 use pokedex::{
-    engine::tetra::Context,
+    context::PokedexClientContext,
+    engine::{tetra::Context, EngineContext},
     trainer::TrainerData,
 };
 
 use battle::data::BattleType;
 
-use crate::{transition::TransitionState, ui::view::ActiveRenderer};
+use crate::{context::BattleGuiContext, transition::TransitionState, ui::view::ActiveRenderer};
 
-use super::{
-    Openers,
-    BattleOpener,
-    WildBattleOpener,
-    TrainerBattleOpener,
-};
+use super::{BattleOpener, Openers, TrainerBattleOpener, WildBattleOpener};
 
 pub struct BattleOpenerManager {
     current: Openers,
@@ -22,17 +18,22 @@ pub struct BattleOpenerManager {
 }
 
 impl BattleOpenerManager {
-
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
             current: Openers::default(),
 
-            wild: WildBattleOpener::new(ctx),
-            trainer: TrainerBattleOpener::new(ctx),
+            wild: WildBattleOpener::new(ctx, gui),
+            trainer: TrainerBattleOpener::new(gui),
         }
     }
 
-    pub fn begin(&mut self, state: &mut TransitionState, battle_type: BattleType, opponent: Option<&TrainerData>) {
+    pub fn begin(
+        &mut self,
+        ctx: &PokedexClientContext,
+        state: &mut TransitionState,
+        battle_type: BattleType,
+        opponent: Option<&TrainerData>,
+    ) {
         *state = TransitionState::Run;
         self.current = match battle_type {
             BattleType::Wild => Openers::Wild,
@@ -41,9 +42,9 @@ impl BattleOpenerManager {
         };
         let current = self.get_mut();
         current.reset();
-        current.spawn(opponent);
+        current.spawn(ctx, opponent);
     }
-    
+
     // pub fn end(&mut self, state: &mut TransitionState) {
     //     *state = TransitionState::Begin;
     // }
@@ -56,11 +57,16 @@ impl BattleOpenerManager {
         }
     }
 
-    pub fn draw_below_panel(&self, ctx: &mut Context, player: &ActiveRenderer, opponent: &ActiveRenderer) {
+    pub fn draw_below_panel(
+        &self,
+        ctx: &mut EngineContext,
+        player: &ActiveRenderer,
+        opponent: &ActiveRenderer,
+    ) {
         self.get().draw_below_panel(ctx, player, opponent);
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         self.get().draw(ctx);
     }
 
@@ -81,5 +87,4 @@ impl BattleOpenerManager {
             Openers::Trainer => &mut self.trainer,
         }
     }
-
 }

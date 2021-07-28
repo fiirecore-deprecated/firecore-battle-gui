@@ -1,16 +1,15 @@
 use pokedex::{
+    context::PokedexClientContext,
     engine::{
-        graphics::{byte_texture, draw_rectangle, position},
-        tetra::{
-            graphics::{Color, Rectangle, Texture},
-            Context,
-        },
-        util::{Completable, Reset, Timer, WIDTH},
+        graphics::{draw_rectangle, position},
+        tetra::graphics::{Color, Rectangle, Texture},
+        util::{Completable, Reset, WIDTH},
+        EngineContext,
     },
     trainer::TrainerData,
 };
 
-use crate::ui::view::ActiveRenderer;
+use crate::{context::BattleGuiContext, ui::view::ActiveRenderer};
 
 mod manager;
 
@@ -33,35 +32,24 @@ impl Default for Openers {
 }
 
 pub(crate) trait BattleOpener: Completable {
-    fn spawn(&mut self, opponent: Option<&TrainerData>);
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: Option<&TrainerData>);
 
     fn update(&mut self, delta: f32);
 
     fn draw_below_panel(
         &self,
-        ctx: &mut Context,
+        ctx: &mut EngineContext,
         player: &ActiveRenderer,
         opponent: &ActiveRenderer,
     );
 
-    fn draw(&self, ctx: &mut Context);
+    fn draw(&self, ctx: &mut EngineContext);
 
     fn offset(&self) -> f32;
 }
 
-static mut PLAYER: Option<Texture> = None;
-
-pub fn player_texture(ctx: &mut Context) -> &Texture {
-    unsafe {
-        PLAYER.get_or_insert(byte_texture(
-            ctx,
-            include_bytes!("../../../assets/player.png"),
-        ))
-    }
-}
-
 pub struct DefaultBattleOpener {
-    start_timer: Timer,
+    wait: f32,
 
     offset: f32,
 
@@ -76,50 +64,52 @@ impl DefaultBattleOpener {
     const SHRINK_BY_DEF: f32 = 1.0;
     const SHRINK_BY_FAST: f32 = 4.0;
     const OFFSET: f32 = 153.0 * 2.0;
+    const WAIT: f32 = 0.5;
 
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &BattleGuiContext) -> Self {
         Self {
-            start_timer: Timer::new(true, 0.5),
+            wait: Self::WAIT,
             rect_size: Self::RECT_SIZE,
             shrink_by: Self::SHRINK_BY_DEF,
             offset: Self::OFFSET,
-            player: player_texture(ctx).clone(),
+            player: ctx.player.clone(),
         }
     }
 }
 
 impl BattleOpener for DefaultBattleOpener {
-    fn spawn(&mut self, _: Option<&TrainerData>) {}
+    fn spawn(&mut self, _: &PokedexClientContext, _: Option<&TrainerData>) {}
 
     fn update(&mut self, delta: f32) {
-        if self.start_timer.finished() {
-            if self.offset > 0.0 {
-                self.offset -= 120.0 * delta;
-                if self.offset < 0.0 {
-                    self.offset = 0.0;
+        match self.wait < 0.0 {
+            false => self.wait -= delta,
+            true => {
+                if self.offset > 0.0 {
+                    self.offset -= 120.0 * delta;
+                    if self.offset < 0.0 {
+                        self.offset = 0.0;
+                    }
                 }
-            }
-            if self.rect_size > 0.0 {
                 if self.rect_size > 0.0 {
-                    self.rect_size -= self.shrink_by * 60.0 * delta;
-                    if self.rect_size < 0.0 {
+                    if self.rect_size > 0.0 {
+                        self.rect_size -= self.shrink_by * 60.0 * delta;
+                        if self.rect_size < 0.0 {
+                            self.rect_size = 0.0;
+                        }
+                    } else {
                         self.rect_size = 0.0;
                     }
-                } else {
-                    self.rect_size = 0.0;
-                }
-                if self.rect_size <= 58.0 && self.shrink_by != Self::SHRINK_BY_FAST {
-                    self.shrink_by = Self::SHRINK_BY_FAST;
+                    if self.rect_size <= 58.0 && self.shrink_by != Self::SHRINK_BY_FAST {
+                        self.shrink_by = Self::SHRINK_BY_FAST;
+                    }
                 }
             }
-        } else {
-            self.start_timer.update(delta);
         }
     }
 
     fn draw_below_panel(
         &self,
-        ctx: &mut Context,
+        ctx: &mut EngineContext,
         _player: &ActiveRenderer,
         _opponent: &ActiveRenderer,
     ) {
@@ -130,7 +120,7 @@ impl BattleOpener for DefaultBattleOpener {
         )
     }
 
-    fn draw(&self, ctx: &mut Context) {
+    fn draw(&self, ctx: &mut EngineContext) {
         draw_rectangle(ctx, 0.0, 0.0, WIDTH, self.rect_size, Color::BLACK);
         draw_rectangle(
             ctx,
@@ -152,7 +142,7 @@ impl Reset for DefaultBattleOpener {
         self.offset = Self::OFFSET;
         self.rect_size = Self::RECT_SIZE;
         self.shrink_by = Self::SHRINK_BY_DEF;
-        self.start_timer.hard_reset();
+        self.wait = Self::WAIT;
     }
 }
 

@@ -1,10 +1,12 @@
 use pokedex::{
     engine::{
         input::{pressed, Control},
-        tetra::Context,
         util::{Entity, Reset},
+        EngineContext,
     },
-    item::ItemRef, moves::target::MoveTarget, pokemon::instance::PokemonInstance,
+    item::ItemRef,
+    moves::target::MoveTarget,
+    pokemon::instance::PokemonInstance,
 };
 
 use crate::view::BattlePartyView;
@@ -43,13 +45,13 @@ impl Default for BattlePanels {
 }
 
 impl BattlePanel {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
             alive: false,
             active: BattlePanels::default(),
-            battle: BattleOptions::new(ctx),
-            fight: FightPanel::new(ctx),
-            targets: TargetPanel::new(ctx),
+            battle: BattleOptions::new(),
+            fight: FightPanel::new(),
+            targets: TargetPanel::new(),
         }
     }
 
@@ -66,7 +68,11 @@ impl BattlePanel {
         self.targets.update_names(targets);
     }
 
-    pub fn input(&mut self, ctx: &Context, pokemon: &PokemonInstance) -> Option<BattlePanels> {
+    pub fn input(
+        &mut self,
+        ctx: &EngineContext,
+        pokemon: &PokemonInstance,
+    ) -> Option<BattlePanels> {
         if self.alive {
             match self.active {
                 BattlePanels::Main => {
@@ -93,7 +99,7 @@ impl BattlePanel {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         if self.alive {
             match self.active {
                 BattlePanels::Main => self.battle.draw(ctx),

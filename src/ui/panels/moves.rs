@@ -3,9 +3,9 @@ use pokedex::{
         graphics::{draw_cursor, draw_text_left},
         gui::Panel,
         input::{pressed, Control},
-        tetra::Context,
         text::TextColor,
         util::Reset,
+        EngineContext,
     },
     moves::MoveRef,
     pokemon::instance::PokemonInstance,
@@ -19,9 +19,9 @@ pub struct MovePanel {
 }
 
 impl MovePanel {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
-            panel: Panel::new(ctx),
+            panel: Panel,
             cursor: 0,
             names: [None; 4],
         }
@@ -40,7 +40,7 @@ impl MovePanel {
         }
     }
 
-    pub fn input(&mut self, ctx: &Context) -> bool {
+    pub fn input(&mut self, ctx: &EngineContext) -> bool {
         if {
             if pressed(ctx, Control::Up) {
                 if self.cursor >= 2 {
@@ -83,7 +83,7 @@ impl MovePanel {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         self.panel.draw(ctx, 0.0, 113.0, 160.0, 47.0);
         for (index, (pokemon_move, color)) in self.names.iter().flatten().enumerate() {
             let x_offset = if index % 2 == 1 { 72.0 } else { 0.0 };
@@ -92,7 +92,7 @@ impl MovePanel {
                 ctx,
                 &0,
                 &pokemon_move.name,
-                color,
+                *color,
                 16.0 + x_offset,
                 121.0 + y_offset,
             );

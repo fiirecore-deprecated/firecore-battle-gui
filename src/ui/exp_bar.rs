@@ -2,7 +2,8 @@ use pokedex::{
     engine::{
         graphics::draw_rectangle,
         gui::ProgressBar,
-        tetra::{graphics::Color, math::Vec2, Context},
+        tetra::{graphics::Color, math::Vec2},
+        EngineContext,
     },
     pokemon::{instance::PokemonInstance, Experience, Level},
 };
@@ -66,7 +67,7 @@ impl ExperienceBar {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context, origin: Vec2<f32>) {
+    pub fn draw(&self, ctx: &mut EngineContext, origin: Vec2<f32>) {
         draw_rectangle(
             ctx,
             origin.x,

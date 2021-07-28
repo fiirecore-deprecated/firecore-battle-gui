@@ -1,20 +1,19 @@
-use pokedex::{
-    battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown},
-    engine::{
+use pokedex::{battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown}, context::PokedexClientContext, engine::{
         graphics::{position, ZERO},
-        gui::TextDisplay,
+        gui::MessageBox,
         tetra::{
             graphics::{Color, Rectangle, Texture},
             Context,
         },
         text::MessagePage,
         util::{Completable, Entity, Reset},
-    },
-};
+        EngineContext,
+    }};
 
 use battle::data::BattleType;
 
 use crate::{
+    context::BattleGuiContext,
     ui::{
         pokemon::PokemonStatusGui,
         view::{ActivePokemonParty, ActiveRenderer},
@@ -23,8 +22,6 @@ use crate::{
 };
 
 use super::BattleIntroduction;
-
-use super::super::opener::player_texture;
 
 pub struct BasicBattleIntroduction {
     player: Texture,
@@ -42,9 +39,9 @@ impl BasicBattleIntroduction {
     const PLAYER_T3: f32 = Self::PLAYER_T2 + 18.0;
     const PLAYER_DESPAWN: f32 = 104.0;
 
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &BattleGuiContext) -> Self {
         Self {
-            player: player_texture(ctx).clone(),
+            player: ctx.player.clone(),
             counter: 0.0,
             offsets: Self::OFFSETS, // opponent, player
         }
@@ -71,13 +68,13 @@ impl BasicBattleIntroduction {
 
     pub(crate) fn common_setup<ID>(
         &mut self,
-        text: &mut TextDisplay,
+        text: &mut MessageBox,
         party: &impl BattlePartyView<ID>,
     ) {
-        text.push(MessagePage::new(
-            vec![format!("Go! {}!", Self::concatenate(party))],
-            Some(0.5),
-        ));
+        text.push(MessagePage {
+            lines: vec![format!("Go! {}!", Self::concatenate(party))],
+            wait: Some(0.5),
+        });
     }
 
     pub(crate) fn draw_player(&self, ctx: &mut Context, player: &ActiveRenderer) {
@@ -112,7 +109,7 @@ impl BasicBattleIntroduction {
         }
     }
 
-    pub(crate) fn draw_opponent(&self, ctx: &mut Context, opponent: &ActiveRenderer) {
+    pub(crate) fn draw_opponent(&self, ctx: &mut EngineContext, opponent: &ActiveRenderer) {
         for active in opponent.iter() {
             active.renderer.draw(ctx, ZERO, Color::WHITE);
             active.status.draw(ctx, self.offsets.0, 0.0);
@@ -125,30 +122,31 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
 {
     fn spawn(
         &mut self,
+        _: &PokedexClientContext,
         _: BattleType,
         player: &BattlePartyKnown<ID>,
         opponent: &BattlePartyUnknown<ID>,
-        text: &mut TextDisplay,
+        text: &mut MessageBox,
     ) {
         text.clear();
-        text.push(MessagePage::new(
-            vec![format!("Wild {} appeared!", Self::concatenate(opponent))],
-            None,
-        ));
+        text.push(MessagePage {
+            lines: vec![format!("Wild {} appeared!", Self::concatenate(opponent))],
+            wait: None,
+        });
         self.common_setup(text, player);
     }
 
     fn update(
         &mut self,
-        ctx: &Context,
+        ctx: &EngineContext,
         delta: f32,
         player: &mut ActivePokemonParty<BattlePartyKnown<ID>>,
         opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>,
-        text: &mut TextDisplay,
+        text: &mut MessageBox,
     ) {
         text.update(ctx, delta);
 
-        if text.current() + 1 == text.len() && self.counter < Self::PLAYER_DESPAWN {
+        if text.page() + 1 == text.pages() && self.counter < Self::PLAYER_DESPAWN {
             self.counter += delta * 180.0;
         }
 
@@ -160,7 +158,7 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
                         self.offsets.0 = 0.0;
                     }
                 }
-            } else if text.can_continue() && text.current() >= text.len() - 2 {
+            } else if text.waiting() && text.page() >= text.pages() - 2 {
                 for active in opponent.renderer.iter_mut() {
                     active.status.spawn();
                 }
@@ -188,7 +186,7 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
         }
     }
 
-    fn draw(&self, ctx: &mut Context, player: &ActiveRenderer, opponent: &ActiveRenderer) {
+    fn draw(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer) {
         self.draw_opponent(ctx, opponent);
         self.draw_player(ctx, player);
     }

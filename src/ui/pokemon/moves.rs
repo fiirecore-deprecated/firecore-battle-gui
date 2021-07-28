@@ -1,6 +1,6 @@
 use pokedex::{
     engine::tetra::{Context, graphics::DrawParams, math::Vec2},
-    battle2::script::{BattleAction, BattleActionInstance, BattleActionScriptInstance},
+    battle_move::script::{BattleAction, BattleActionInstance, BattleActionScriptInstance},
 };
 
 use crate::ui::BattleGuiPosition;

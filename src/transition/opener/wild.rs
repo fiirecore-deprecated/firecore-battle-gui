@@ -1,13 +1,15 @@
 use pokedex::{
+    context::PokedexClientContext,
     engine::{
         graphics::{byte_texture, position, LIGHTGRAY},
         tetra::{graphics::Texture, math::Vec2, Context},
         util::{Completable, Reset},
+        EngineContext,
     },
     trainer::TrainerData,
 };
 
-use crate::ui::view::ActiveRenderer;
+use crate::{context::BattleGuiContext, ui::view::ActiveRenderer};
 
 use super::{BattleOpener, DefaultBattleOpener};
 
@@ -21,9 +23,9 @@ pub struct WildBattleOpener {
 impl WildBattleOpener {
     const GRASS_WIDTH: f32 = 128.0;
     const GRASS_HEIGHT: f32 = 47.0;
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
-            opener: DefaultBattleOpener::new(ctx),
+            opener: DefaultBattleOpener::new(gui),
             grass: byte_texture(ctx, include_bytes!("../../../assets/grass.png")),
             offset: Vec2::new(Self::GRASS_WIDTH, Self::GRASS_HEIGHT),
         }
@@ -31,7 +33,7 @@ impl WildBattleOpener {
 }
 
 impl BattleOpener for WildBattleOpener {
-    fn spawn(&mut self, _trainer: Option<&TrainerData>) {}
+    fn spawn(&mut self, _: &PokedexClientContext, _: Option<&TrainerData>) {}
 
     fn update(&mut self, delta: f32) {
         self.opener.update(delta);
@@ -52,7 +54,7 @@ impl BattleOpener for WildBattleOpener {
 
     fn draw_below_panel(
         &self,
-        ctx: &mut Context,
+        ctx: &mut EngineContext,
         player: &ActiveRenderer,
         opponent: &ActiveRenderer,
     ) {
@@ -72,7 +74,7 @@ impl BattleOpener for WildBattleOpener {
         }
     }
 
-    fn draw(&self, ctx: &mut Context) {
+    fn draw(&self, ctx: &mut EngineContext) {
         self.opener.draw(ctx);
     }
 }

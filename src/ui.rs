@@ -1,8 +1,10 @@
 use pokedex::engine::{
     graphics::position,
-    gui::TextDisplay,
+    gui::MessageBox,
     tetra::{Context, graphics::DrawParams},
 };
+
+use crate::context::BattleGuiContext;
 
 use self::{background::BattleBackground, panels::{BattlePanel, level::LevelUpMovePanel}, pokemon::bounce::PlayerBounce};
 
@@ -50,7 +52,7 @@ pub struct BattleGui {
 
     pub panel: BattlePanel,
 
-    pub text: TextDisplay,
+    pub text: MessageBox,
 
     pub bounce: PlayerBounce,
 
@@ -61,20 +63,20 @@ pub struct BattleGui {
 }
 
 impl BattleGui {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
-            background: BattleBackground::new(ctx),
+            background: BattleBackground::new(ctx, gui),
 
-            panel: BattlePanel::new(ctx),
+            panel: BattlePanel::new(),
 
             text: self::text::new(),
 
             bounce: PlayerBounce::new(),
 
-            opener: BattleOpenerManager::new(ctx),
-            introduction: BattleIntroductionManager::new(ctx),
+            opener: BattleOpenerManager::new(ctx, gui),
+            introduction: BattleIntroductionManager::new(gui),
 			trainer: BattleTrainerPartyIntro::new(ctx),
-            level_up: LevelUpMovePanel::new(ctx),
+            level_up: LevelUpMovePanel::new(),
         }
     }
 

@@ -1,6 +1,6 @@
 use pokedex::{
     engine::{
-        tetra::Context, 
+        EngineContext,
         util::Reset,
     },
     pokemon::instance::PokemonInstance,
@@ -14,10 +14,10 @@ pub struct FightPanel {
 }
 
 impl FightPanel {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
-            moves: MovePanel::new(ctx),
-            info: MoveInfoPanel::new(ctx),
+            moves: MovePanel::new(),
+            info: MoveInfoPanel::new(),
         }
     }
 
@@ -32,12 +32,12 @@ impl FightPanel {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         self.moves.draw(ctx);
         self.info.draw(ctx);
     }
 
-    pub fn input(&mut self, ctx: &Context, pokemon: &PokemonInstance) {
+    pub fn input(&mut self, ctx: &EngineContext, pokemon: &PokemonInstance) {
         if self.moves.input(ctx) {
             self.update_move(pokemon);
         }

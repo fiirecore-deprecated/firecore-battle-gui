@@ -1,10 +1,10 @@
 use pokedex::{
     engine::{
-        gui::TextDisplay,
+        gui::MessageBox,
         input::{pressed, Control},
         text::{MessagePage, TextColor},
         util::{Completable, Entity},
-        tetra::Context,
+        EngineContext,
     },
     moves::MoveRef,
     pokemon::instance::PokemonInstance,
@@ -28,22 +28,22 @@ enum LevelUpState {
 }
 
 impl LevelUpMovePanel {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
             state: LevelUpState::NotAlive,
-            move_panel: MovePanel::new(ctx),
+            move_panel: MovePanel::new(),
             moves: Vec::new(),
         }
     }
 
-    pub fn spawn(&mut self, instance: &PokemonInstance, text: &mut TextDisplay, moves: Vec<MoveRef>) {
+    pub fn spawn(&mut self, instance: &PokemonInstance, text: &mut MessageBox, moves: Vec<MoveRef>) {
         self.state = LevelUpState::Text;
         self.moves = moves;
         self.move_panel.update_names(instance);
         text.despawn();
     }
 
-    pub fn update(&mut self, ctx: &Context, text: &mut TextDisplay, delta: f32, pokemon: &mut PokemonInstance) -> Option<(usize, MoveRef)> {
+    pub fn update(&mut self, ctx: &EngineContext, text: &mut MessageBox, delta: f32, pokemon: &mut PokemonInstance) -> Option<(usize, MoveRef)> {
         match self.state {
             LevelUpState::Text => {
                 match text.alive() {
@@ -58,13 +58,13 @@ impl LevelUpMovePanel {
                     false => match self.moves.first() {
                         Some(move_ref) => {
                             text.spawn();
-                            text.push(MessagePage::new(
-                                vec![
+                            text.push(MessagePage {
+                                lines: vec![
                                     format!("{} is trying to", pokemon.name()),
                                     format!("learn {}", move_ref.name),
                                 ],
-                                None,
-                            ));
+                                wait: None,
+                            });
                             self.update(ctx, text, delta, pokemon)
                         }
                         None => {
@@ -93,7 +93,7 @@ impl LevelUpMovePanel {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         match self.state {
             LevelUpState::Moves => self.move_panel.draw(ctx),
             LevelUpState::Text | LevelUpState::NotAlive => (),

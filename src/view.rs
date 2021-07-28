@@ -1,9 +1,10 @@
 use pokedex::{
-    battle::{party::BattleParty, view::UnknownPokemon, Active, PartyIndex},
-    pokemon::{
-        instance::{BorrowedPokemon, PokemonInstance},
-        Health, Level, PokemonRef,
+    battle::{
+        party::{battle::BorrowedPokemon, BattleParty},
+        view::UnknownPokemon,
+        Active, PartyIndex,
     },
+    pokemon::{instance::PokemonInstance, Health, Level, PokemonRef},
     status::StatusEffectInstance,
 };
 
@@ -89,7 +90,6 @@ impl<ID, P: PokemonView> BattlePartyView<ID> for BattleParty<ID, Option<usize>, 
             .enumerate()
             .any(|(i, p)| !(self.active.contains(&Some(i)) || p.fainted()))
     }
-
 }
 
 pub trait PokemonView {

@@ -1,13 +1,15 @@
 use pokedex::{
     engine::{
-        graphics::{byte_texture, position},
-        tetra::{Context, graphics::Texture, math::Vec2},
-        audio::sound::Sound,
-        play_sound,
+        graphics::position,
+        tetra::{graphics::Texture, math::Vec2, Context},
+        audio::{sound::Sound, play_sound},
+        EngineContext,
     },
     pokemon::PokemonId,
     CRY_ID,
 };
+
+use crate::context::BattleGuiContext;
 
 pub struct Spawner {
     pub spawning: SpawnerState,
@@ -24,8 +26,6 @@ pub enum SpawnerState {
     Spawning,
 }
 
-static mut POKEBALL: Option<Texture> = None;
-
 impl Spawner {
 
     const LEN: f32 = 20.0;
@@ -33,12 +33,12 @@ impl Spawner {
     const OFFSET: f32 = -5.0;
     const PARABOLA_ORIGIN: f32 = (Self::LEN / 3.0);
 
-    pub fn new(ctx: &mut Context, id: Option<PokemonId>) -> Self {
+    pub fn new(ctx: &BattleGuiContext, id: Option<PokemonId>) -> Self {
         Self {
             spawning: SpawnerState::None,
             x: 0.0,
             id: id,
-            texture: unsafe { POKEBALL.get_or_insert(byte_texture(ctx, include_bytes!("../../../assets/thrown_pokeball.png"))).clone() }
+            texture: ctx.pokeball.clone(),
         }
     }
 
@@ -46,7 +46,7 @@ impl Spawner {
         0.5 * (x - Self::PARABOLA_ORIGIN).powi(2) - 50.0
     }
 
-    pub fn update(&mut self, ctx: &Context, delta: f32) {
+    pub fn update(&mut self, ctx: &EngineContext, delta: f32) {
         match self.spawning {
             SpawnerState::Start => {
                 self.x = Self::ORIGIN;

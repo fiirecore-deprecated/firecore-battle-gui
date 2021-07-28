@@ -6,11 +6,7 @@ use pokedex::engine::{
     }
 };
 
-static mut PANEL: Option<Texture> = None;
-
-pub fn panel_texture(ctx: &mut Context) -> &Texture {
-	unsafe { PANEL.get_or_insert(byte_texture(ctx, include_bytes!("../../assets/gui/panel.png"))) }
-}
+use crate::context::BattleGuiContext;
 
 pub struct BattleBackground {
 
@@ -22,11 +18,11 @@ pub struct BattleBackground {
 
 impl BattleBackground {
 
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
             background: byte_texture(ctx, include_bytes!("../../assets/background.png")),
             ground: byte_texture(ctx, include_bytes!("../../assets/ground.png")),
-            panel: panel_texture(ctx).clone(),
+            panel: gui.panel.clone(),
         }
 
     }

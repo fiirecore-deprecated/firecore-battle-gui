@@ -1,54 +1,24 @@
 use pokedex::{
+    battle::view::UnknownPokemon,
+    context::PokedexClientContext,
     engine::{
-        graphics::{byte_texture, draw_text_left, draw_text_right, position},
-        tetra::{graphics::Texture, math::Vec2, Context},
+        graphics::{draw_text_left, draw_text_right, position},
+        tetra::{graphics::Texture, math::Vec2},
         text::TextColor,
         util::Entity,
+        EngineContext,
     },
     gui::health::HealthBar,
-    battle::view::UnknownPokemon,
-    pokemon::{instance::PokemonInstance, stat::StatSet, Level, Health},
+    pokemon::{instance::PokemonInstance, stat::StatSet, Health, Level},
 };
 
 use log::warn;
 
 use crate::{
+    context::BattleGuiContext,
     ui::{exp_bar::ExperienceBar, BattleGuiPosition, BattleGuiPositionIndex},
     view::PokemonView,
 };
-
-static mut PLAYER: Option<Texture> = None;
-
-fn large_ui(ctx: &mut Context) -> &'static Texture {
-    unsafe {
-        PLAYER.get_or_insert(byte_texture(
-            ctx,
-            include_bytes!("../../../assets/gui/large.png"),
-        ))
-    }
-}
-
-static mut OPPONENT_PADDING: Option<Texture> = None;
-
-fn padding(ctx: &mut Context) -> &'static Texture {
-    unsafe {
-        OPPONENT_PADDING.get_or_insert(byte_texture(
-            ctx,
-            include_bytes!("../../../assets/gui/padding.png"),
-        ))
-    }
-}
-
-static mut OPPONENT: Option<Texture> = None;
-
-fn small_ui(ctx: &mut Context) -> &'static Texture {
-    unsafe {
-        OPPONENT.get_or_insert(byte_texture(
-            ctx,
-            include_bytes!("../../../assets/gui/small.png"),
-        ))
-    }
-}
 
 pub struct PokemonStatusGui {
     alive: bool,
@@ -83,7 +53,11 @@ impl PokemonStatusGui {
 
     const HEALTH_Y: f32 = 15.0;
 
-    pub fn new(ctx: &mut Context, index: BattleGuiPositionIndex) -> Self {
+    pub fn new(
+        ctx: &BattleGuiContext,
+        dex: &PokedexClientContext,
+        index: BattleGuiPositionIndex,
+    ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
 
         Self {
@@ -96,14 +70,15 @@ impl PokemonStatusGui {
             small,
             background,
             data_pos,
-            health: (HealthBar::new(ctx), hb),
+            health: (HealthBar::new(dex), hb),
             exp: ExperienceBar::new(),
             data: Default::default(),
         }
     }
 
     pub fn with_known(
-        ctx: &mut Context,
+        ctx: &BattleGuiContext,
+        dex: &PokedexClientContext,
         index: BattleGuiPositionIndex,
         pokemon: Option<&PokemonInstance>,
     ) -> Self {
@@ -114,16 +89,18 @@ impl PokemonStatusGui {
             origin,
             small,
             background,
-            data: pokemon.map(|pokemon| PokemonStatusData {
-                active: true,
-                name: pokemon.name().to_owned(),
-                level: Self::level(pokemon.level()),
-                health: format!("{}/{}", pokemon.hp(), pokemon.max_hp()),
-            }).unwrap_or_default(),
+            data: pokemon
+                .map(|pokemon| PokemonStatusData {
+                    active: true,
+                    name: pokemon.name().to_owned(),
+                    level: Self::level(pokemon.level()),
+                    health: format!("{}/{}", pokemon.hp(), pokemon.max_hp()),
+                })
+                .unwrap_or_default(),
             data_pos,
             health: (
                 HealthBar::with_size(
-                    ctx,
+                    dex,
                     pokemon
                         .map(|pokemon| HealthBar::width(pokemon.hp(), pokemon.max_hp()))
                         .unwrap_or_default(),
@@ -135,7 +112,8 @@ impl PokemonStatusGui {
     }
 
     pub fn with_unknown(
-        ctx: &mut Context,
+        ctx: &BattleGuiContext,
+        dex: &PokedexClientContext,
         index: BattleGuiPositionIndex,
         pokemon: Option<&UnknownPokemon>,
     ) -> Self {
@@ -146,16 +124,18 @@ impl PokemonStatusGui {
             origin,
             background,
             small,
-            data: pokemon.map(|pokemon| PokemonStatusData {
-                active: true,
-                name: pokemon.name().to_owned(),
-                level: Self::level(pokemon.level()),
-                health: String::new(),
-            }).unwrap_or_default(),
+            data: pokemon
+                .map(|pokemon| PokemonStatusData {
+                    active: true,
+                    name: pokemon.name().to_owned(),
+                    level: Self::level(pokemon.level()),
+                    health: String::new(),
+                })
+                .unwrap_or_default(),
             data_pos,
             health: (
                 HealthBar::with_size(
-                    ctx,
+                    dex,
                     pokemon.map(|pokemon| pokemon.hp()).unwrap_or_default() * HealthBar::WIDTH,
                 ),
                 hb,
@@ -180,7 +160,7 @@ impl PokemonStatusGui {
     const EXP_OFFSET: Vec2<f32> = Vec2::new(32.0, 33.0);
 
     fn attributes(
-        ctx: &mut Context,
+        ctx: &BattleGuiContext,
         index: BattleGuiPositionIndex,
     ) -> (
         (
@@ -196,7 +176,7 @@ impl PokemonStatusGui {
                     if index.size == 1 {
                         (
                             (
-                                (Some(padding(ctx).clone()), small_ui(ctx).clone()), // Background
+                                (Some(ctx.padding.clone()), ctx.smallui.clone()), // Background
                                 Self::TOP_SINGLE,
                                 true,
                             ),
@@ -204,7 +184,7 @@ impl PokemonStatusGui {
                             Self::OPPONENT_HEALTH_OFFSET, // Health Bar Pos
                         )
                     } else {
-                        let texture = small_ui(ctx).clone();
+                        let texture = ctx.smallui.clone();
                         let mut pos = Vec2::zero();
                         pos.y += index.index as f32 * texture.height() as f32;
                         (
@@ -222,7 +202,7 @@ impl PokemonStatusGui {
                     if index.size == 1 {
                         (
                             (
-                                (None, large_ui(ctx).clone()),
+                                (None, ctx.largeui.clone()),
                                 Self::BOTTOM_SINGLE,
                                 false,
                                 // Some(ExperienceBar::new(/*Self::BOTTOM_SINGLE + Self::EXP_OFFSET*/),),
@@ -234,7 +214,7 @@ impl PokemonStatusGui {
                             Vec2::new(33.0, Self::HEALTH_Y),
                         )
                     } else {
-                        let texture = small_ui(ctx).clone();
+                        let texture = ctx.smallui.clone();
                         let mut pos = Self::BOTTOM_MANY_WITH_BOTTOM_RIGHT;
                         pos.x -= texture.width() as f32;
                         pos.y -= (index.index + 1) as f32 * (texture.height() as f32 + 1.0);
@@ -305,14 +285,21 @@ impl PokemonStatusGui {
 
     pub fn update_gui_ex(&mut self, pokemon: Option<(Level, &dyn PokemonView)>, reset: bool) {
         self.data.active = if let Some((previous, pokemon)) = pokemon {
-            self.data.update(previous, pokemon, reset, &mut self.health.0, &mut self.exp, !self.small);
+            self.data.update(
+                previous,
+                pokemon,
+                reset,
+                &mut self.health.0,
+                &mut self.exp,
+                !self.small,
+            );
             true
         } else {
             false
         };
     }
 
-    pub fn draw(&self, ctx: &mut Context, offset: f32, bounce: f32) {
+    pub fn draw(&self, ctx: &mut EngineContext, offset: f32, bounce: f32) {
         if self.alive {
             if self.data.active {
                 let should_bounce =
@@ -334,16 +321,16 @@ impl PokemonStatusGui {
                     ctx,
                     &0,
                     &self.data.name,
-                    &TextColor::Black,
+                    TextColor::Black,
                     pos.x + self.data_pos.name,
                     y,
                 );
 
-                draw_text_right(ctx, &0, &self.data.level.0, &TextColor::Black, x2, y);
+                draw_text_right(ctx, &0, &self.data.level.0, TextColor::Black, x2, y);
 
                 if !self.small {
                     self.exp.draw(ctx, pos + Self::EXP_OFFSET);
-                    draw_text_right(ctx, &0, &self.data.health, &TextColor::Black, x2, y + 18.0);
+                    draw_text_right(ctx, &0, &self.data.health, TextColor::Black, x2, y + 18.0);
                 }
 
                 self.health.0.draw(ctx, pos + self.health.1);
@@ -353,7 +340,6 @@ impl PokemonStatusGui {
 }
 
 impl PokemonStatusData {
-
     pub fn update(
         &mut self,
         previous: Level,
@@ -372,8 +358,7 @@ impl PokemonStatusData {
         if exp_active {
             if let Some(pokemon) = pokemon.instance() {
                 exp.update_exp(previous, pokemon, reset);
-                if pokemon.level == previous {
-                }
+                if pokemon.level == previous {}
             }
         }
         if reset {

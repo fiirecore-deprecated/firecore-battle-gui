@@ -1,13 +1,10 @@
-use pokedex::{
-    engine::{
-        gui::TextDisplay, 
-        tetra::Context,
+use pokedex::{battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown}, context::PokedexClientContext, engine::{
+        gui::MessageBox,
         util::{Entity, Completable},
-    },
-    battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown},
-};
+        EngineContext,
+    }};
 
-use crate::battle::data::BattleType;
+use crate::{battle::data::BattleType, context::BattleGuiContext};
 
 use crate::ui::view::{ActiveRenderer, ActivePokemonParty};
 
@@ -34,11 +31,11 @@ impl Default for Introductions {
 
 pub(crate) trait BattleIntroduction<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>: Completable {
 
-    fn spawn(&mut self, battle_type: BattleType, player: &BattlePartyKnown<ID>, opponent: &BattlePartyUnknown<ID>, text: &mut TextDisplay);
+    fn spawn(&mut self, ctx: &PokedexClientContext, battle_type: BattleType, player: &BattlePartyKnown<ID>, opponent: &BattlePartyUnknown<ID>, text: &mut MessageBox);
 
-    fn update(&mut self, ctx: &Context, delta: f32, player: &mut ActivePokemonParty<BattlePartyKnown<ID>>, opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>, text: &mut TextDisplay);
+    fn update(&mut self, ctx: &EngineContext, delta: f32, player: &mut ActivePokemonParty<BattlePartyKnown<ID>>, opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>, text: &mut MessageBox);
 
-    fn draw(&self, ctx: &mut Context, player: &ActiveRenderer, opponent: &ActiveRenderer);
+    fn draw(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer);
 
 }
 
@@ -51,7 +48,7 @@ pub struct BattleIntroductionManager {
 
 impl BattleIntroductionManager {
 
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &BattleGuiContext) -> Self {
         Self {
             current: Introductions::default(),
 
@@ -60,7 +57,7 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn begin<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self, state: &mut TransitionState, battle_type: BattleType, player: &BattlePartyKnown<ID>, opponent: &BattlePartyUnknown<ID>, text: &mut TextDisplay) {
+    pub fn begin<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self, ctx: &PokedexClientContext, state: &mut TransitionState, battle_type: BattleType, player: &BattlePartyKnown<ID>, opponent: &BattlePartyUnknown<ID>, text: &mut MessageBox) {
         *state = TransitionState::Run;
         match battle_type {
             BattleType::Wild => self.current = Introductions::Basic,
@@ -68,15 +65,15 @@ impl BattleIntroductionManager {
         }
         let current = self.get_mut();
         current.reset();
-        current.spawn(battle_type, player, opponent, text);
+        current.spawn(ctx, battle_type, player, opponent, text);
         text.spawn();
     }
 
-    pub fn end(&mut self, text: &mut TextDisplay) {
+    pub fn end(&mut self, text: &mut MessageBox) {
         text.clear();
     }
 
-    pub fn update<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self, state: &mut TransitionState, ctx: &Context, delta: f32, player: &mut ActivePokemonParty<BattlePartyKnown<ID>>, opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>, text: &mut TextDisplay) {
+    pub fn update<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self, state: &mut TransitionState, ctx: &EngineContext, delta: f32, player: &mut ActivePokemonParty<BattlePartyKnown<ID>>, opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>, text: &mut MessageBox) {
         let current = self.get_mut();
         current.update(ctx, delta, player, opponent, text);
         if current.finished() {
@@ -84,7 +81,7 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn draw<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&self, ctx: &mut Context, player: &ActiveRenderer, opponent: &ActiveRenderer) {
+    pub fn draw<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer) {
         self.get::<ID>().draw(ctx, player, opponent);
     }
 

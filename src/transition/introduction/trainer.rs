@@ -1,18 +1,22 @@
 use pokedex::{
     battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown},
+    context::PokedexClientContext,
     engine::{
         graphics::{draw_o_bottom, TextureManager},
-        gui::TextDisplay,
-        tetra::{graphics::Texture, Context},
+        gui::MessageBox,
+        tetra::graphics::Texture,
         text::MessagePage,
         util::{Completable, Reset},
+        EngineContext,
     },
-    texture::TrainerTextures,
 };
 
 use battle::data::BattleType;
 
-use crate::ui::view::{ActivePokemonParty, ActiveRenderer};
+use crate::{
+    context::BattleGuiContext,
+    ui::view::{ActivePokemonParty, ActiveRenderer},
+};
 
 use super::{basic::BasicBattleIntroduction, BattleIntroduction};
 
@@ -27,7 +31,7 @@ pub struct TrainerBattleIntroduction {
 impl TrainerBattleIntroduction {
     const FINAL_TRAINER_OFFSET: f32 = 126.0;
 
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &BattleGuiContext) -> Self {
         Self {
             introduction: BasicBattleIntroduction::new(ctx),
             texture: None,
@@ -42,35 +46,36 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
 {
     fn spawn(
         &mut self,
+        ctx: &PokedexClientContext,
         _battle_type: BattleType,
         player: &BattlePartyKnown<ID>,
         opponent: &BattlePartyUnknown<ID>,
-        text: &mut TextDisplay,
+        text: &mut MessageBox,
     ) {
         text.clear();
 
         if let Some(trainer) = &opponent.trainer {
-            self.texture = Some(TrainerTextures::get(&trainer.npc_type).clone());
+            self.texture = Some(ctx.trainer_textures.get(&trainer.npc_type).clone());
 
             let name = format!("{} {}", trainer.prefix, trainer.name);
 
-            text.push(MessagePage::new(
-                vec![name.clone(), String::from("would like to battle!")],
-                None,
-            ));
+            text.push(MessagePage {
+                lines: vec![name.clone(), String::from("would like to battle!")],
+                wait: None,
+            });
 
-            text.push(MessagePage::new(
-                vec![
+            text.push(MessagePage {
+                lines: vec![
                     name + " sent",
                     format!("out {}", BasicBattleIntroduction::concatenate(opponent)),
                 ],
-                Some(0.5),
-            ));
+                wait: Some(0.5),
+            });
         } else {
-            text.push(MessagePage::new(
-                vec![String::from("No trainer data found!")],
-                None,
-            ));
+            text.push(MessagePage {
+                lines: vec![String::from("No trainer data found!")],
+                wait: None,
+            });
         }
 
         self.introduction.common_setup(text, player);
@@ -78,14 +83,14 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
 
     fn update(
         &mut self,
-        ctx: &Context,
+        ctx: &EngineContext,
         delta: f32,
         player: &mut ActivePokemonParty<BattlePartyKnown<ID>>,
         opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>,
-        text: &mut TextDisplay,
+        text: &mut MessageBox,
     ) {
         self.introduction.update(ctx, delta, player, opponent, text);
-        if text.can_continue() && text.current() == text.len() - 2 {
+        if text.waiting() && text.page() == text.pages() - 2 {
             self.leaving = true;
         }
         if self.leaving && self.offset < Self::FINAL_TRAINER_OFFSET {
@@ -93,7 +98,7 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
         }
     }
 
-    fn draw(&self, ctx: &mut Context, player: &ActiveRenderer, opponent: &ActiveRenderer) {
+    fn draw(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer) {
         if self.offset < Self::FINAL_TRAINER_OFFSET {
             draw_o_bottom(ctx, self.texture.as_ref(), 144.0 + self.offset, 74.0);
         } else {

@@ -3,8 +3,8 @@ use pokedex::{
         graphics::{draw_cursor, draw_text_left},
         gui::Panel,
         input::{pressed, Control},
-        tetra::Context,
         text::TextColor,
+        EngineContext,
     },
     pokemon::instance::PokemonInstance,
 };
@@ -17,9 +17,9 @@ pub struct BattleOptions {
 }
 
 impl BattleOptions {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new() -> Self {
         Self {
-            panel: Panel::new(ctx),
+            panel: Panel,
             buttons: ["FIGHT", "BAG", "POKEMON", "RUN"],
             pokemon_do: String::new(),
             cursor: 0,
@@ -30,7 +30,7 @@ impl BattleOptions {
         self.pokemon_do = format!("{} do?", instance.name());
     }
 
-    pub fn input(&mut self, ctx: &Context) {
+    pub fn input(&mut self, ctx: &EngineContext) {
         if pressed(ctx, Control::Up) && self.cursor >= 2 {
             self.cursor -= 2;
         } else if pressed(ctx, Control::Down) && self.cursor <= 2 {
@@ -42,18 +42,18 @@ impl BattleOptions {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         self.panel.draw(ctx, 120.0, 113.0, 120.0, 47.0);
 
-        draw_text_left(ctx, &1, "What will", &TextColor::White, 11.0, 123.0);
-        draw_text_left(ctx, &1, &self.pokemon_do, &TextColor::White, 11.0, 139.0);
+        draw_text_left(ctx, &1, "What will", TextColor::White, 11.0, 123.0);
+        draw_text_left(ctx, &1, &self.pokemon_do, TextColor::White, 11.0, 139.0);
 
         for (index, string) in self.buttons.iter().enumerate() {
             draw_text_left(
                 ctx,
                 &0,
                 string,
-                &TextColor::Black,
+                TextColor::Black,
                 138.0 + if index % 2 == 0 { 0.0 } else { 56.0 },
                 123.0 + if index >> 1 == 0 { 0.0 } else { 16.0 },
             )
