@@ -10,7 +10,6 @@ use pokedex::{
 };
 
 pub struct BattleOptions {
-    panel: Panel,
     buttons: [&'static str; 4],
     pokemon_do: String,
     pub cursor: usize,
@@ -19,7 +18,6 @@ pub struct BattleOptions {
 impl BattleOptions {
     pub fn new() -> Self {
         Self {
-            panel: Panel,
             buttons: ["FIGHT", "BAG", "POKEMON", "RUN"],
             pokemon_do: String::new(),
             cursor: 0,
@@ -43,7 +41,7 @@ impl BattleOptions {
     }
 
     pub fn draw(&self, ctx: &mut EngineContext) {
-        self.panel.draw(ctx, 120.0, 113.0, 120.0, 47.0);
+        Panel::draw(ctx, 120.0, 113.0, 120.0, 47.0);
 
         draw_text_left(ctx, &1, "What will", TextColor::White, 11.0, 123.0);
         draw_text_left(ctx, &1, &self.pokemon_do, TextColor::White, 11.0, 139.0);

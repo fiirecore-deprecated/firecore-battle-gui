@@ -1,6 +1,6 @@
 use pokedex::{
     battle::{
-        party::{battle::BorrowedPokemon, BattleParty},
+        party::BattleParty,
         view::UnknownPokemon,
         Active, PartyIndex,
     },
@@ -256,51 +256,5 @@ impl PokemonView for Option<UnknownPokemon> {
 
     fn effect(&mut self) -> Option<&mut StatusEffectInstance> {
         self.as_mut().map(|u| u.effect()).flatten()
-    }
-}
-
-impl PokemonView for BorrowedPokemon {
-    fn pokemon(&self) -> PokemonRef {
-        self.pokemon
-    }
-
-    fn name(&self) -> &str {
-        PokemonInstance::name(self)
-    }
-
-    fn set_level(&mut self, level: Level) {
-        self.level = level;
-    }
-
-    fn level(&self) -> Level {
-        self.level
-    }
-
-    fn set_hp(&mut self, hp: f32) {
-        self.current_hp = (hp.max(0.0) * self.max_hp() as f32) as Health
-    }
-
-    fn hp(&self) -> f32 {
-        self.percent_hp()
-    }
-
-    fn fainted(&self) -> bool {
-        PokemonInstance::fainted(self)
-    }
-
-    fn instance(&self) -> Option<&PokemonInstance> {
-        Some(self)
-    }
-
-    fn instance_mut(&mut self) -> Option<&mut PokemonInstance> {
-        Some(self)
-    }
-
-    fn set_effect(&mut self, effect: StatusEffectInstance) {
-        self.effect = Some(effect);
-    }
-
-    fn effect(&mut self) -> Option<&mut StatusEffectInstance> {
-        self.effect.as_mut()
     }
 }

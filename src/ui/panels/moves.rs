@@ -12,8 +12,6 @@ use pokedex::{
 };
 
 pub struct MovePanel {
-    // origin: Vec2,
-    panel: Panel,
     pub cursor: usize,
     pub names: [Option<(MoveRef, TextColor)>; 4],
 }
@@ -21,7 +19,6 @@ pub struct MovePanel {
 impl MovePanel {
     pub fn new() -> Self {
         Self {
-            panel: Panel,
             cursor: 0,
             names: [None; 4],
         }
@@ -84,7 +81,7 @@ impl MovePanel {
     }
 
     pub fn draw(&self, ctx: &mut EngineContext) {
-        self.panel.draw(ctx, 0.0, 113.0, 160.0, 47.0);
+        Panel::draw(ctx, 0.0, 113.0, 160.0, 47.0);
         for (index, (pokemon_move, color)) in self.names.iter().flatten().enumerate() {
             let x_offset = if index % 2 == 1 { 72.0 } else { 0.0 };
             let y_offset = if index >> 1 == 1 { 17.0 } else { 0.0 };

@@ -9,7 +9,6 @@ use pokedex::{
 };
 
 pub struct MoveInfoPanel {
-    background: Panel,
     pp: String,
     move_type: String,
 }
@@ -19,7 +18,6 @@ impl MoveInfoPanel {
 
     pub fn new() -> Self {
         Self {
-            background: Panel,
             pp: String::from("x/y"),
             move_type: String::from("TYPE/"),
         }
@@ -32,7 +30,7 @@ impl MoveInfoPanel {
     }
 
     pub fn draw(&self, ctx: &mut EngineContext) {
-        self.background.draw(ctx, 160.0, 113.0, 80.0, 47.0);
+        Panel::draw(ctx, 160.0, 113.0, 80.0, 47.0);
         draw_text_left(ctx, &0, "PP", TextColor::Black, 168.0, 124.0);
         draw_text_left(ctx, &0, &self.move_type, TextColor::Black, 168.0, 140.0);
         draw_text_right(ctx, &0, &self.pp, TextColor::Black, 232.0, 124.0);
