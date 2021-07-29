@@ -175,8 +175,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
         };
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut Bag) {
-
+    pub fn receive(&mut self, dex: &PokedexClientContext) {
         while let Some(message) = self.messages.client.pop() {
             match message {
                 ServerMessage::User(data, user) => {
@@ -235,7 +234,9 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                 // }
             }
         }
+    }
 
+    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut Bag) {
         match &mut self.state {
             BattlePlayerState::WaitToStart | BattlePlayerState::Winner(..) => (),
             BattlePlayerState::Opening(state) => match state {
