@@ -15,7 +15,7 @@ pub fn battle_party_gui(
     gui.spawn(
         party
             .iter()
-            .filter(|p| p.available())
+            .filter(|p| p.visible())
             .cloned()
             .map(|instance| PokemonDisplay::new(ctx, std::borrow::Cow::Owned(instance)))
             .collect(),

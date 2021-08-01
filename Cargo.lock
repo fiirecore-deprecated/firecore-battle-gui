@@ -305,7 +305,7 @@ dependencies = [
 [[package]]
 name = "firecore-battle"
 version = "0.5.0-beta.2021-07-31"
-source = "git+https://github.com/DoNotDoughnut/firecore-battle#b302c51f0758a78d663765679729be57f933f606"
+source = "git+https://github.com/DoNotDoughnut/firecore-battle#98faecd83ef8bf0cbbc4f66281f78cd3091fa572"
 dependencies = [
  "firecore-pokedex",
  "log",
