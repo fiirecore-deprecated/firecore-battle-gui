@@ -1,3 +1,4 @@
+use ::battle::{player::PlayerKnowable, pokemon::PokemonView};
 use pokedex::{
     engine::{
         input::{pressed, Control},
@@ -8,8 +9,6 @@ use pokedex::{
     moves::MoveTarget,
     pokemon::PokemonInstance,
 };
-
-use crate::view::PlayerView;
 
 use self::{battle::BattleOptions, fight::FightPanel, target::TargetPanel};
 
@@ -64,7 +63,7 @@ impl BattlePanel {
         self.spawn();
     }
 
-    pub fn target<ID, P: PlayerView<ID>>(&mut self, targets: &P) {
+    pub fn target<ID, P: PokemonView>(&mut self, targets: &PlayerKnowable<ID, P>) {
         self.targets.update_names(targets);
     }
 

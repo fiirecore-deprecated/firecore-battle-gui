@@ -4,6 +4,8 @@ use pokedex::{
     pokemon::PokemonParty,
 };
 
+use battle::pokemon::PokemonView;
+
 pub fn battle_party_gui(
     ctx: &PokedexClientContext,
     gui: &PartyGui,
@@ -13,6 +15,7 @@ pub fn battle_party_gui(
     gui.spawn(
         party
             .iter()
+            .filter(|p| p.available())
             .cloned()
             .map(|instance| PokemonDisplay::new(ctx, std::borrow::Cow::Owned(instance)))
             .collect(),

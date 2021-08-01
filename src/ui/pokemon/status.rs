@@ -17,7 +17,7 @@ use log::warn;
 use crate::{
     context::BattleGuiContext,
     ui::{exp_bar::ExperienceBar, BattleGuiPosition, BattleGuiPositionIndex},
-    view::PokemonView,
+    view::GuiPokemonView,
 };
 
 pub struct PokemonStatusGui {
@@ -93,7 +93,7 @@ impl PokemonStatusGui {
                 .map(|pokemon| PokemonStatusData {
                     active: true,
                     name: pokemon.name().to_owned(),
-                    level: Self::level(pokemon.level()),
+                    level: Self::level(pokemon.level),
                     health: format!("{}/{}", pokemon.hp(), pokemon.max_hp()),
                 })
                 .unwrap_or_default(),
@@ -128,7 +128,7 @@ impl PokemonStatusGui {
                 .map(|pokemon| PokemonStatusData {
                     active: true,
                     name: pokemon.name().to_owned(),
-                    level: Self::level(pokemon.level()),
+                    level: Self::level(pokemon.level),
                     health: String::new(),
                 })
                 .unwrap_or_default(),
@@ -136,7 +136,7 @@ impl PokemonStatusGui {
             health: (
                 HealthBar::with_size(
                     dex,
-                    pokemon.map(|pokemon| pokemon.hp()).unwrap_or_default() * HealthBar::WIDTH,
+                    pokemon.map(|pokemon| pokemon.hp).unwrap_or_default() * HealthBar::WIDTH,
                 ),
                 hb,
             ),
@@ -251,7 +251,7 @@ impl PokemonStatusGui {
                     self.data.level.1 += 1;
                     self.data.level.0 = Self::level_fmt(self.data.level.1);
                     let base = StatSet::hp(
-                        pokemon.pokemon().base.hp,
+                        pokemon.pokemon.base.hp,
                         pokemon.ivs.hp,
                         pokemon.evs.hp,
                         self.data.level.1,
@@ -272,7 +272,7 @@ impl PokemonStatusGui {
         (self.exp.moving() && !self.small) || self.health.0.is_moving()
     }
 
-    pub fn update_gui(&mut self, pokemon: Option<&dyn PokemonView>, reset: bool) {
+    pub fn update_gui(&mut self, pokemon: Option<&dyn GuiPokemonView>, reset: bool) {
         self.update_gui_ex(
             if let Some(pokemon) = pokemon {
                 Some((pokemon.level(), pokemon))
@@ -283,7 +283,7 @@ impl PokemonStatusGui {
         );
     }
 
-    pub fn update_gui_ex(&mut self, pokemon: Option<(Level, &dyn PokemonView)>, reset: bool) {
+    pub fn update_gui_ex(&mut self, pokemon: Option<(Level, &dyn GuiPokemonView)>, reset: bool) {
         self.data.active = if let Some((previous, pokemon)) = pokemon {
             self.data.update(
                 previous,
@@ -343,7 +343,7 @@ impl PokemonStatusData {
     pub fn update(
         &mut self,
         previous: Level,
-        pokemon: &dyn PokemonView,
+        pokemon: &dyn GuiPokemonView,
         reset: bool,
         health: &mut HealthBar,
         exp: &mut ExperienceBar,

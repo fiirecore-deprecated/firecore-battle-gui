@@ -16,7 +16,7 @@ use crate::{
         pokemon::{flicker::Flicker, PokemonRenderer, PokemonStatusGui},
         BattleGuiPosition, BattleGuiPositionIndex,
     },
-    view::PokemonView,
+    view::GuiPokemonView,
 };
 
 pub type ActiveRenderer = Vec<ActivePokemonRenderer>;
@@ -98,7 +98,7 @@ impl ActivePokemonRenderer {
                         ctx,
                         dex,
                         position,
-                        pokemon.map(|pokemon| *pokemon.pokemon().id()),
+                        pokemon.map(|pokemon| *pokemon.pokemon.id()),
                         PokemonTexture::Front,
                     ),
                     status: PokemonStatusGui::with_unknown(ctx, dex, position, pokemon),
@@ -107,13 +107,13 @@ impl ActivePokemonRenderer {
             .collect()
     }
 
-    pub fn update(&mut self, dex: &PokedexClientContext, pokemon: Option<&dyn PokemonView>) {
+    pub fn update(&mut self, dex: &PokedexClientContext, pokemon: Option<&dyn GuiPokemonView>) {
         self.update_status(pokemon, true);
         self.renderer
             .new_pokemon(dex, pokemon.map(|pokemon| *pokemon.pokemon().id()));
     }
 
-    pub fn update_status(&mut self, pokemon: Option<&dyn PokemonView>, reset: bool) {
+    pub fn update_status(&mut self, pokemon: Option<&dyn GuiPokemonView>, reset: bool) {
         self.status.update_gui(pokemon, reset);
     }
 

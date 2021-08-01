@@ -1,3 +1,4 @@
+use battle::{player::PlayerKnowable, pokemon::PokemonView};
 use pokedex::engine::{
     graphics::{draw_cursor, draw_text_left},
     gui::Panel,
@@ -6,8 +7,6 @@ use pokedex::engine::{
     util::Reset,
     EngineContext,
 };
-
-use crate::view::PlayerView;
 
 pub struct TargetPanel {
     pub names: Vec<Option<String>>,
@@ -22,13 +21,13 @@ impl TargetPanel {
         }
     }
 
-    pub fn update_names<ID, P: PlayerView<ID>>(&mut self, targets: &P) {
+    pub fn update_names<ID, P: PokemonView>(&mut self, targets: &PlayerKnowable<ID, P>) {
         self.names.clear();
-        self.names.extend(
-            (0..targets.active_len())
-                .into_iter()
-                .map(|active| targets.active(active).map(|v| v.name().to_owned())),
-        );
+        self.names.extend(targets.active.iter().map(|i| {
+            i.map(|index| targets.pokemon.get(index))
+                .flatten()
+                .map(|p| p.name().to_owned())
+        }));
     }
 
     pub fn input(&mut self, ctx: &EngineContext) {

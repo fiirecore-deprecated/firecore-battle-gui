@@ -13,7 +13,7 @@ use pokedex::{
     },
 };
 
-use battle::BattleType;
+use battle::{player::PlayerKnowable, pokemon::PokemonView, BattleType};
 
 use crate::{
     context::BattleGuiContext,
@@ -21,7 +21,6 @@ use crate::{
         pokemon::PokemonStatusGui,
         view::{ActiveRenderer, GuiLocalPlayer, GuiRemotePlayer},
     },
-    view::PlayerView,
 };
 
 use super::BattleIntroduction;
@@ -51,19 +50,17 @@ impl BasicBattleIntroduction {
     }
 
     #[deprecated(note = "bad code, return vec of string (lines)")]
-    pub(crate) fn concatenate<ID>(party: &impl PlayerView<ID>) -> String {
+    pub(crate) fn concatenate<ID, P: PokemonView>(party: &PlayerKnowable<ID, P>) -> String {
         let mut string = String::new();
-        let len = party.active_len();
-        for index in 0..len {
-            if let Some(instance) = party.active(index) {
-                if index != 0 {
-                    if index == len - 2 {
-                        string.push_str(", ");
-                    } else if index == len - 1 {
-                        string.push_str(" and ");
-                    }
+        let len = party.active.len();
+        for (index, instance) in party.active_iter() {
+            if index != 0 {
+                if index == len - 2 {
+                    string.push_str(", ");
+                } else if index == len - 1 {
+                    string.push_str(" and ");
                 }
-                string.push_str(&instance.name());
+            string.push_str(&instance.name());
             }
         }
         string

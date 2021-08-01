@@ -88,15 +88,6 @@ impl<ID> Messages<ID> {
     pub fn send(&mut self, message: ClientMessage) {
         self.server.insert(0, message)
     }
-    pub fn receive(&mut self) -> Option<ServerMessage<ID>> {
-        self.client.pop()
-    }
-    pub fn give_client(&mut self, message: ServerMessage<ID>) {
-        self.client.insert(0, message)
-    }
-    pub fn give_server(&mut self) -> Option<ClientMessage> {
-        self.server.pop()
-    }
 }
 
 impl<ID> Default for Messages<ID> {
@@ -128,10 +119,10 @@ enum BattlePlayerState<ID> {
 
 impl<ID: Default> BattleEndpoint<ID> for BattlePlayerGui<ID> {
     fn send(&mut self, message: ServerMessage<ID>) {
-        self.messages.give_client(message)
+        self.messages.client.insert(0, message)
     }
     fn receive(&mut self) -> Option<ClientMessage> {
-        self.messages.give_server()
+        self.messages.server.pop()
     }
 }
 
@@ -173,8 +164,8 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
         };
     }
 
-    pub fn receive(&mut self, dex: &PokedexClientContext) {
-        while let Some(message) = self.messages.receive() {
+    pub fn process(&mut self, dex: &PokedexClientContext) {
+        while let Some(message) = self.messages.client.pop() {
             match message {
                 ServerMessage::User(data, user) => {
                     self.player.player = user;
@@ -445,7 +436,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                         //     MoveTargetLocation::User => user.active(instance.pokemon.index),
                                                         // }.map(|v| !v.fainted()).unwrap_or_default()) {
 
-                                                        ui::text::on_move(&mut self.gui.text, &pokemon_move, user_active);
+                                                        ui::text::on_move(&mut self.gui.text, &pokemon_move, user_active.name());
 
                                                         // }
             
@@ -465,7 +456,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                                     match moves {
                                                                         ClientAction::UserHP(damage) => user_pokemon.set_hp(*damage),
                                                                         ClientAction::Fail => ui::text::on_fail(&mut self.gui.text, vec![format!("{} cannot use move", user_pokemon.name()), format!("{} is unimplemented", pokemon_move.name)]),
-                                                                        ClientAction::Miss => ui::text::on_miss(&mut self.gui.text, user_pokemon),
+                                                                        ClientAction::Miss => ui::text::on_miss(&mut self.gui.text, user_pokemon.name()),
                                                                         ClientAction::SetExp(experience, level) => {
                                                                             let previous = user_pokemon.level();
                                                                             user_pokemon.set_level(*level);
@@ -503,7 +494,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                                             }
                                                                         },
                                                                         ClientAction::Effective(effective) => ui::text::on_effective(&mut self.gui.text, &effective),
-                                                                        ClientAction::StatStage(stat) => ui::text::on_stat_stage(&mut self.gui.text, target, stat),
+                                                                        ClientAction::StatStage(stat) => ui::text::on_stat_stage(&mut self.gui.text, target.name(), stat),
                                                                         ClientAction::Faint(target_instance) => queue.actions.push_front(
                                                                             BoundAction {
                                                                                 pokemon: *target_instance,
@@ -512,7 +503,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                                         ),
                                                                         ClientAction::Status(effect) => {
                                                                             target.set_effect(*effect);
-                                                                            ui::text::on_status(&mut self.gui.text, target, &effect.status);
+                                                                            ui::text::on_status(&mut self.gui.text, target.name(), &effect.status);
                                                                         }
                                                                         ClientAction::Miss | ClientAction::UserHP(..) | ClientAction::SetExp(..) | ClientAction::Fail => (),
                                                                     }
@@ -540,7 +531,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                             action: BattleClientGuiAction::Catch,
                                                         });
                                                     }
-                                                    ui::text::on_item(&mut self.gui.text, target, &item);
+                                                    ui::text::on_item(&mut self.gui.text, target.name(), &item);
                                                 }
                                                 Some(BattleClientGuiCurrent::UseItem(match &item.usage {
                                                     ItemUseType::Script(..) | ItemUseType::None => match index == instance.pokemon.index {
@@ -551,8 +542,8 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                 }))
                                             }
                                             ClientMove::Switch(index) => {
-                                                let coming = user.pokemon(index).unwrap();
-                                                ui::text::on_switch(&mut self.gui.text, user.active(instance.pokemon.index).unwrap(), coming);
+                                                let coming = user.pokemon(index).unwrap().name();
+                                                ui::text::on_switch(&mut self.gui.text, user.active(instance.pokemon.index).unwrap().name(), coming);
                                                 Some(BattleClientGuiCurrent::Switch(index))
                                             }
                                         }
@@ -560,7 +551,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                             let is_player = &instance.pokemon.team == user.id();
                                             let target = user.active_mut(instance.pokemon.index).unwrap();
                                             target.set_hp(0.0);
-                                            ui::text::on_faint(&mut self.gui.text, matches!(self.battle_data.type_, BattleType::Wild), is_player, target);
+                                            ui::text::on_faint(&mut self.gui.text, matches!(self.battle_data.type_, BattleType::Wild), is_player, target.name());
                                             user_ui[instance.pokemon.index].renderer.faint();
                                             Some(BattleClientGuiCurrent::Faint)
                                         },
@@ -574,7 +565,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                             Some(BattleClientGuiCurrent::Catch)
                                         }
                                         BattleClientGuiAction::Replace(new) => {
-                                            ui::text::on_replace(&mut self.gui.text, user.name(), new.map(|index| user.pokemon(index)).flatten());
+                                            ui::text::on_replace(&mut self.gui.text, user.name(), new.map(|index| user.pokemon(index).map(|v| v.name())).flatten());
                                             user.replace(instance.pokemon.index, new);
                                             Some(BattleClientGuiCurrent::Replace(false))
                                         }
@@ -666,7 +657,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                 false => {
                                     self.gui.text.update(ctx, delta);
 
-                                    if self.gui.text.page() == 1 && !user.active_eq(instance.pokemon.index, Some(*new)) {
+                                    if self.gui.text.page() == 1 && !user.active_eq(instance.pokemon.index, &Some(*new)) {
                                         user.replace(instance.pokemon.index, Some(*new));
                                         user_ui[instance.pokemon.index].update(dex, user.active(instance.pokemon.index));
                                     }
@@ -694,7 +685,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                 } else if !self.gui.text.finished() {
                                 	self.gui.text.update(ctx, delta);
                                 } else {
-                                    match instance.pokemon.team == self.player.player.party.id && self.player.player.any_inactive() {
+                                    match instance.pokemon.team == self.player.player.party.id && self.player.player.party.any_inactive() {
                                         true => match self.party.alive() {
                                             true => {
                                                 self.party.input(ctx, dex, self.player.player.party.pokemon.as_mut_slice());
@@ -704,8 +695,8 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                                                         // user.queue_replace(index, selected);
                                                         self.party.despawn();
                                                         self.messages.send(ClientMessage::FaintReplace(instance.pokemon.index, selected));
-                                                        self.player.player.replace(instance.pokemon.index, Some(selected));
-                                                        ui.update(dex, self.player.player.active(instance.pokemon.index));
+                                                        self.player.player.party.replace(instance.pokemon.index, Some(selected));
+                                                        ui.update(dex, self.player.player.party.active(instance.pokemon.index).map(|p| p as _));
                                                         queue.current = None;
                                                     }
                                                 }
