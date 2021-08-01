@@ -1,14 +1,15 @@
 use pokedex::{
-    battle::{
-        party::BattleParty,
-        view::UnknownPokemon,
-        Active, PartyIndex,
-    },
-    pokemon::{instance::PokemonInstance, Health, Level, PokemonRef},
+    pokemon::{Health, Level, PokemonInstance, PokemonRef},
     status::StatusEffectInstance,
 };
 
-pub trait BattlePartyView<ID> {
+use battle::{player::PlayerKnowable, pokemon::UnknownPokemon};
+
+type Active = usize;
+type PartyIndex = usize;
+
+#[deprecated]
+pub trait PlayerView<ID> {
     fn id(&self) -> &ID;
 
     fn name(&self) -> &str;
@@ -32,13 +33,13 @@ pub trait BattlePartyView<ID> {
     fn any_inactive(&self) -> bool;
 }
 
-impl<ID, P: PokemonView> BattlePartyView<ID> for BattleParty<ID, Option<usize>, P> {
+impl<ID, P: PokemonView> PlayerView<ID> for PlayerKnowable<ID, P> {
     fn id(&self) -> &ID {
         &self.id
     }
 
     fn name(&self) -> &str {
-        BattleParty::name(&self)
+        self.name.as_deref().unwrap_or("Unknown")
     }
 
     fn active(&self, active: usize) -> Option<&dyn PokemonView> {

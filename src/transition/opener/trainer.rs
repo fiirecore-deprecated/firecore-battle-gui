@@ -1,15 +1,14 @@
 use pokedex::{
     context::PokedexClientContext,
     engine::{
-        graphics::{draw_o_bottom, TextureManager},
+        graphics::{draw_o_bottom},
         tetra::graphics::Texture,
         util::{Completable, Reset},
         EngineContext,
     },
-    trainer::TrainerData,
 };
 
-use crate::{context::BattleGuiContext, ui::view::ActiveRenderer};
+use crate::{context::BattleGuiContext, ui::view::{ActiveRenderer, GuiRemotePlayer}};
 
 use super::{BattleOpener, DefaultBattleOpener};
 
@@ -27,10 +26,10 @@ impl TrainerBattleOpener {
     }
 }
 
-impl BattleOpener for TrainerBattleOpener {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: Option<&TrainerData>) {
-        if let Some(trainer) = opponent {
-            self.trainer = Some(ctx.trainer_textures.get(&trainer.npc_type).clone());
+impl<ID: Default> BattleOpener<ID> for TrainerBattleOpener {
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>) {
+        if let Some(id) = &opponent.trainer {
+            self.trainer = Some(ctx.trainer_textures.get(id).clone());
         }
     }
 

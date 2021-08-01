@@ -6,10 +6,12 @@ use pokedex::{
         util::{Completable, Reset},
         EngineContext,
     },
-    trainer::TrainerData,
 };
 
-use crate::{context::BattleGuiContext, ui::view::ActiveRenderer};
+use crate::{
+    context::BattleGuiContext,
+    ui::view::{ActiveRenderer, GuiRemotePlayer},
+};
 
 use super::{BattleOpener, DefaultBattleOpener};
 
@@ -32,8 +34,8 @@ impl WildBattleOpener {
     }
 }
 
-impl BattleOpener for WildBattleOpener {
-    fn spawn(&mut self, _: &PokedexClientContext, _: Option<&TrainerData>) {}
+impl<ID: Default> BattleOpener<ID> for WildBattleOpener {
+    fn spawn(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID>) {}
 
     fn update(&mut self, delta: f32) {
         self.opener.update(delta);
@@ -49,7 +51,7 @@ impl BattleOpener for WildBattleOpener {
     }
 
     fn offset(&self) -> f32 {
-        self.opener.offset()
+        self.opener.offset
     }
 
     fn draw_below_panel(

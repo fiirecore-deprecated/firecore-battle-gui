@@ -1,13 +1,14 @@
-use pokedex::{
-    context::PokedexClientContext,
-    engine::{graphics::ZERO, tetra::graphics::Color, EngineContext},
-};
+use core::ops::{Deref, DerefMut};
 
 use pokedex::{
-    battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown},
     id::Identifiable,
+    context::PokedexClientContext,
     texture::PokemonTexture,
+    engine::{graphics::ZERO, tetra::graphics::Color, EngineContext},
+    TrainerId,
 };
+
+use battle::player::{RemotePlayer, LocalPlayer};
 
 use crate::{
     context::BattleGuiContext,
@@ -19,11 +20,28 @@ use crate::{
 };
 
 pub type ActiveRenderer = Vec<ActivePokemonRenderer>;
+pub type GuiLocalPlayer<ID> = ActivePlayer<LocalPlayer<ID>>;
+pub type GuiRemotePlayer<ID> = ActivePlayer<RemotePlayer<ID>>;
 
 #[derive(Default)]
-pub struct ActivePokemonParty<T> {
-    pub party: T,
+pub struct ActivePlayer<T: Default> {
+    pub player: T,
     pub renderer: ActiveRenderer,
+    pub trainer: Option<TrainerId>,
+}
+
+impl<T: Default> Deref for ActivePlayer<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.player
+    }
+}
+
+impl<T: Default> DerefMut for ActivePlayer<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.player
+    }
 }
 
 pub struct ActivePokemonRenderer {
@@ -32,10 +50,10 @@ pub struct ActivePokemonRenderer {
 }
 
 impl ActivePokemonRenderer {
-    pub fn init_known<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(
+    pub fn local<ID>(
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
-        party: &BattlePartyKnown<ID>,
+        party: &LocalPlayer<ID>,
     ) -> ActiveRenderer {
         let size = party.active.len() as u8;
         party
@@ -60,10 +78,10 @@ impl ActivePokemonRenderer {
             .collect()
     }
 
-    pub fn init_unknown<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(
+    pub fn remote<ID>(
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
-        party: &BattlePartyUnknown<ID>,
+        party: &RemotePlayer<ID>,
     ) -> ActiveRenderer {
         let size = party.active.len() as u8;
         party

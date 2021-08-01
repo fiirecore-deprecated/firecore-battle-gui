@@ -5,11 +5,11 @@ use pokedex::{
         EngineContext,
     },
     item::ItemRef,
-    moves::target::MoveTarget,
-    pokemon::instance::PokemonInstance,
+    moves::MoveTarget,
+    pokemon::PokemonInstance,
 };
 
-use crate::view::BattlePartyView;
+use crate::view::PlayerView;
 
 use self::{battle::BattleOptions, fight::FightPanel, target::TargetPanel};
 
@@ -64,7 +64,7 @@ impl BattlePanel {
         self.spawn();
     }
 
-    pub fn target<ID, P: BattlePartyView<ID>>(&mut self, targets: &P) {
+    pub fn target<ID, P: PlayerView<ID>>(&mut self, targets: &P) {
         self.targets.update_names(targets);
     }
 

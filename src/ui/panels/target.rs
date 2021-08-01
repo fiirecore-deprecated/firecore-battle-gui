@@ -7,7 +7,7 @@ use pokedex::engine::{
     EngineContext,
 };
 
-use crate::view::BattlePartyView;
+use crate::view::PlayerView;
 
 pub struct TargetPanel {
     pub names: Vec<Option<String>>,
@@ -22,7 +22,7 @@ impl TargetPanel {
         }
     }
 
-    pub fn update_names<ID, P: BattlePartyView<ID>>(&mut self, targets: &P) {
+    pub fn update_names<ID, P: PlayerView<ID>>(&mut self, targets: &P) {
         self.names.clear();
         self.names.extend(
             (0..targets.active_len())

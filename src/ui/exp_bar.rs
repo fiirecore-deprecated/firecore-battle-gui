@@ -5,7 +5,7 @@ use pokedex::{
         tetra::{graphics::Color, math::Vec2},
         EngineContext,
     },
-    pokemon::{instance::PokemonInstance, Experience, Level},
+    pokemon::{PokemonInstance, Experience, Level},
 };
 
 pub struct ExperienceBar {

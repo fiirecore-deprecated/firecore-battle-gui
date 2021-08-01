@@ -6,10 +6,9 @@ use pokedex::{
         util::{Completable, Reset, WIDTH},
         EngineContext,
     },
-    trainer::TrainerData,
 };
 
-use crate::{context::BattleGuiContext, ui::view::ActiveRenderer};
+use crate::{context::BattleGuiContext, ui::view::{ActiveRenderer, GuiRemotePlayer}};
 
 mod manager;
 
@@ -31,8 +30,8 @@ impl Default for Openers {
     }
 }
 
-pub(crate) trait BattleOpener: Completable {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: Option<&TrainerData>);
+pub(crate) trait BattleOpener<ID: Default>: Completable {
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>);
 
     fn update(&mut self, delta: f32);
 
@@ -77,10 +76,10 @@ impl DefaultBattleOpener {
     }
 }
 
-impl BattleOpener for DefaultBattleOpener {
-    fn spawn(&mut self, _: &PokedexClientContext, _: Option<&TrainerData>) {}
+impl DefaultBattleOpener {
+    pub fn spawn<ID: Default>(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID>) {}
 
-    fn update(&mut self, delta: f32) {
+    pub fn update(&mut self, delta: f32) {
         match self.wait < 0.0 {
             false => self.wait -= delta,
             true => {
@@ -107,7 +106,7 @@ impl BattleOpener for DefaultBattleOpener {
         }
     }
 
-    fn draw_below_panel(
+    pub fn draw_below_panel(
         &self,
         ctx: &mut EngineContext,
         _player: &ActiveRenderer,
@@ -120,7 +119,7 @@ impl BattleOpener for DefaultBattleOpener {
         )
     }
 
-    fn draw(&self, ctx: &mut EngineContext) {
+    pub fn draw(&self, ctx: &mut EngineContext) {
         draw_rectangle(ctx, 0.0, 0.0, WIDTH, self.rect_size, Color::BLACK);
         draw_rectangle(
             ctx,
@@ -132,7 +131,7 @@ impl BattleOpener for DefaultBattleOpener {
         );
     }
 
-    fn offset(&self) -> f32 {
+    pub fn offset(&self) -> f32 {
         self.offset
     }
 }

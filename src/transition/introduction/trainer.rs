@@ -1,8 +1,7 @@
 use pokedex::{
-    battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown},
     context::PokedexClientContext,
     engine::{
-        graphics::{draw_o_bottom, TextureManager},
+        graphics::draw_o_bottom,
         gui::MessageBox,
         tetra::graphics::Texture,
         text::MessagePage,
@@ -11,11 +10,11 @@ use pokedex::{
     },
 };
 
-use battle::data::BattleType;
+use battle::BattleType;
 
 use crate::{
     context::BattleGuiContext,
-    ui::view::{ActivePokemonParty, ActiveRenderer},
+    ui::view::{ActiveRenderer, GuiLocalPlayer, GuiRemotePlayer},
 };
 
 use super::{basic::BasicBattleIntroduction, BattleIntroduction};
@@ -41,24 +40,22 @@ impl TrainerBattleIntroduction {
     }
 }
 
-impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> BattleIntroduction<ID>
-    for TrainerBattleIntroduction
-{
+impl<ID: Default> BattleIntroduction<ID> for TrainerBattleIntroduction {
     fn spawn(
         &mut self,
         ctx: &PokedexClientContext,
         _battle_type: BattleType,
-        player: &BattlePartyKnown<ID>,
-        opponent: &BattlePartyUnknown<ID>,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         text.clear();
 
-        if let Some(trainer) = &opponent.trainer {
-            self.texture = Some(ctx.trainer_textures.get(&trainer.npc_type).clone());
+        if let Some(id) = &opponent.trainer {
+            self.texture = Some(ctx.trainer_textures.get(id).clone());
+        }
 
-            let name = format!("{} {}", trainer.prefix, trainer.name);
-
+        if let Some(name) = &opponent.name {
             text.push(MessagePage {
                 lines: vec![name.clone(), String::from("would like to battle!")],
                 wait: None,
@@ -66,8 +63,8 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
 
             text.push(MessagePage {
                 lines: vec![
-                    name + " sent",
-                    format!("out {}", BasicBattleIntroduction::concatenate(opponent)),
+                    format!("{} sent", name),
+                    format!("out {}", BasicBattleIntroduction::concatenate(&opponent.player)),
                 ],
                 wait: Some(0.5),
             });
@@ -85,8 +82,8 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
         &mut self,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut ActivePokemonParty<BattlePartyKnown<ID>>,
-        opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         self.introduction.update(ctx, delta, player, opponent, text);

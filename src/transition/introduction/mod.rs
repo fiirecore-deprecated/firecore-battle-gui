@@ -1,12 +1,18 @@
-use pokedex::{battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown}, context::PokedexClientContext, engine::{
+use pokedex::{
+    context::PokedexClientContext,
+    engine::{
         gui::MessageBox,
-        util::{Entity, Completable},
+        util::{Completable, Entity},
         EngineContext,
-    }};
+    },
+};
 
-use crate::{battle::data::BattleType, context::BattleGuiContext};
+use battle::BattleType;
 
-use crate::ui::view::{ActiveRenderer, ActivePokemonParty};
+use crate::{
+    context::BattleGuiContext,
+    ui::view::{ActiveRenderer, GuiLocalPlayer, GuiRemotePlayer},
+};
 
 use super::TransitionState;
 
@@ -17,10 +23,8 @@ pub use basic::*;
 pub use trainer::*;
 
 pub enum Introductions {
-
     Basic,
     Trainer,
-
 }
 
 impl Default for Introductions {
@@ -29,14 +33,26 @@ impl Default for Introductions {
     }
 }
 
-pub(crate) trait BattleIntroduction<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>: Completable {
+pub(crate) trait BattleIntroduction<ID: Default>: Completable {
+    fn spawn(
+        &mut self,
+        ctx: &PokedexClientContext,
+        battle_type: BattleType,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
+        text: &mut MessageBox,
+    );
 
-    fn spawn(&mut self, ctx: &PokedexClientContext, battle_type: BattleType, player: &BattlePartyKnown<ID>, opponent: &BattlePartyUnknown<ID>, text: &mut MessageBox);
-
-    fn update(&mut self, ctx: &EngineContext, delta: f32, player: &mut ActivePokemonParty<BattlePartyKnown<ID>>, opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>, text: &mut MessageBox);
+    fn update(
+        &mut self,
+        ctx: &EngineContext,
+        delta: f32,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
+        text: &mut MessageBox,
+    );
 
     fn draw(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer);
-
 }
 
 pub struct BattleIntroductionManager {
@@ -47,7 +63,6 @@ pub struct BattleIntroductionManager {
 }
 
 impl BattleIntroductionManager {
-
     pub fn new(ctx: &BattleGuiContext) -> Self {
         Self {
             current: Introductions::default(),
@@ -57,7 +72,15 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn begin<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self, ctx: &PokedexClientContext, state: &mut TransitionState, battle_type: BattleType, player: &BattlePartyKnown<ID>, opponent: &BattlePartyUnknown<ID>, text: &mut MessageBox) {
+    pub fn begin<ID: Default>(
+        &mut self,
+        ctx: &PokedexClientContext,
+        state: &mut TransitionState,
+        battle_type: BattleType,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
+        text: &mut MessageBox,
+    ) {
         *state = TransitionState::Run;
         match battle_type {
             BattleType::Wild => self.current = Introductions::Basic,
@@ -73,7 +96,15 @@ impl BattleIntroductionManager {
         text.clear();
     }
 
-    pub fn update<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self, state: &mut TransitionState, ctx: &EngineContext, delta: f32, player: &mut ActivePokemonParty<BattlePartyKnown<ID>>, opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>, text: &mut MessageBox) {
+    pub fn update<ID: Default>(
+        &mut self,
+        state: &mut TransitionState,
+        ctx: &EngineContext,
+        delta: f32,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
+        text: &mut MessageBox,
+    ) {
         let current = self.get_mut();
         current.update(ctx, delta, player, opponent, text);
         if current.finished() {
@@ -81,22 +112,26 @@ impl BattleIntroductionManager {
         }
     }
 
-    pub fn draw<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer) {
+    pub fn draw<ID: Default>(
+        &self,
+        ctx: &mut EngineContext,
+        player: &ActiveRenderer,
+        opponent: &ActiveRenderer,
+    ) {
         self.get::<ID>().draw(ctx, player, opponent);
     }
 
-    fn get<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&self) -> &dyn BattleIntroduction<ID> {
+    fn get<ID: Default>(&self) -> &dyn BattleIntroduction<ID> {
         match self.current {
             Introductions::Basic => &self.basic,
             Introductions::Trainer => &self.trainer,
         }
     }
 
-    fn get_mut<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord>(&mut self) -> &mut dyn BattleIntroduction<ID> {
+    fn get_mut<ID: Default>(&mut self) -> &mut dyn BattleIntroduction<ID> {
         match self.current {
             Introductions::Basic => &mut self.basic,
             Introductions::Trainer => &mut self.trainer,
         }
     }
-
 }

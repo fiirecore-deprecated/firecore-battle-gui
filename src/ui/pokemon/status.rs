@@ -1,5 +1,4 @@
 use pokedex::{
-    battle::view::UnknownPokemon,
     context::PokedexClientContext,
     engine::{
         graphics::{draw_text_left, draw_text_right, position},
@@ -9,8 +8,9 @@ use pokedex::{
         EngineContext,
     },
     gui::health::HealthBar,
-    pokemon::{instance::PokemonInstance, stat::StatSet, Health, Level},
+    pokemon::{PokemonInstance, stat::StatSet, Health, Level},
 };
+use battle::pokemon::UnknownPokemon;
 
 use log::warn;
 

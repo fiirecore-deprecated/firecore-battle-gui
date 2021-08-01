@@ -3,7 +3,7 @@ use pokedex::{
         EngineContext,
         util::Reset,
     },
-    pokemon::instance::PokemonInstance,
+    pokemon::PokemonInstance,
 };
 
 use super::{move_info::MoveInfoPanel, moves::MovePanel};

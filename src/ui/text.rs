@@ -6,7 +6,7 @@ use pokedex::{
     },
     item::Item,
     moves::Move,
-    pokemon::{instance::PokemonInstance, stat::StatStage, Experience, Level},
+    pokemon::{PokemonInstance, stat::StatStage, Experience, Level},
     status::Status,
     types::Effective,
 };
@@ -89,12 +89,12 @@ pub(crate) fn on_miss(text: &mut MessageBox, pokemon: &dyn PokemonView) {
     });
 }
 
-pub(crate) fn on_item(text: &mut MessageBox, pokemon: Option<&dyn PokemonView>, item: &Item) {
+pub(crate) fn on_item(text: &mut MessageBox, target: &dyn PokemonView, item: &Item) {
     text.push(MessagePage {
         lines: vec![format!(
             "A {} was used on {}",
             item.name,
-            pokemon.map(|p| p.name()).unwrap_or("None")
+            target.name(),
         )],
         wait: Some(0.5),
     });

@@ -7,7 +7,7 @@ use pokedex::{
         EngineContext,
     },
     moves::MoveRef,
-    pokemon::instance::PokemonInstance,
+    pokemon::PokemonInstance,
 };
 
 use super::moves::MovePanel;

@@ -6,7 +6,7 @@ use pokedex::{
         text::TextColor,
         EngineContext,
     },
-    pokemon::instance::PokemonInstance,
+    pokemon::PokemonInstance,
 };
 
 pub struct BattleOptions {

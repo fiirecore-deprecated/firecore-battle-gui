@@ -1,4 +1,6 @@
-use pokedex::{battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown}, context::PokedexClientContext, engine::{
+use pokedex::{
+    context::PokedexClientContext,
+    engine::{
         graphics::{position, ZERO},
         gui::MessageBox,
         tetra::{
@@ -8,17 +10,18 @@ use pokedex::{battle::party::knowable::{BattlePartyKnown, BattlePartyUnknown}, c
         text::MessagePage,
         util::{Completable, Entity, Reset},
         EngineContext,
-    }};
+    },
+};
 
-use battle::data::BattleType;
+use battle::BattleType;
 
 use crate::{
     context::BattleGuiContext,
     ui::{
         pokemon::PokemonStatusGui,
-        view::{ActivePokemonParty, ActiveRenderer},
+        view::{ActiveRenderer, GuiLocalPlayer, GuiRemotePlayer},
     },
-    view::BattlePartyView,
+    view::PlayerView,
 };
 
 use super::BattleIntroduction;
@@ -48,7 +51,7 @@ impl BasicBattleIntroduction {
     }
 
     #[deprecated(note = "bad code, return vec of string (lines)")]
-    pub(crate) fn concatenate<ID>(party: &impl BattlePartyView<ID>) -> String {
+    pub(crate) fn concatenate<ID>(party: &impl PlayerView<ID>) -> String {
         let mut string = String::new();
         let len = party.active_len();
         for index in 0..len {
@@ -66,13 +69,13 @@ impl BasicBattleIntroduction {
         string
     }
 
-    pub(crate) fn common_setup<ID>(
+    pub(crate) fn common_setup<ID: Default>(
         &mut self,
         text: &mut MessageBox,
-        party: &impl BattlePartyView<ID>,
+        player: &GuiLocalPlayer<ID>,
     ) {
         text.push(MessagePage {
-            lines: vec![format!("Go! {}!", Self::concatenate(party))],
+            lines: vec![format!("Go! {}!", Self::concatenate(&player.player))],
             wait: Some(0.5),
         });
     }
@@ -117,20 +120,21 @@ impl BasicBattleIntroduction {
     }
 }
 
-impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> BattleIntroduction<ID>
-    for BasicBattleIntroduction
-{
+impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
     fn spawn(
         &mut self,
         _: &PokedexClientContext,
         _: BattleType,
-        player: &BattlePartyKnown<ID>,
-        opponent: &BattlePartyUnknown<ID>,
+        player: &GuiLocalPlayer<ID>,
+        opponent: &GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         text.clear();
         text.push(MessagePage {
-            lines: vec![format!("Wild {} appeared!", Self::concatenate(opponent))],
+            lines: vec![format!(
+                "Wild {} appeared!",
+                Self::concatenate(&opponent.player)
+            )],
             wait: None,
         });
         self.common_setup(text, player);
@@ -140,8 +144,8 @@ impl<ID: Sized + Copy + core::fmt::Debug + core::fmt::Display + Eq + Ord> Battle
         &mut self,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut ActivePokemonParty<BattlePartyKnown<ID>>,
-        opponent: &mut ActivePokemonParty<BattlePartyUnknown<ID>>,
+        player: &mut GuiLocalPlayer<ID>,
+        opponent: &mut GuiRemotePlayer<ID>,
         text: &mut MessageBox,
     ) {
         text.update(ctx, delta);
