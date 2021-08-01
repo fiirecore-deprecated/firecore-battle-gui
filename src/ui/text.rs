@@ -55,7 +55,7 @@ pub(crate) fn on_crit(text: &mut MessageBox) {
 pub(crate) fn on_stat_stage(text: &mut MessageBox, pokemon: &str, stat: &StatStage) {
     text.push(MessagePage {
         lines: vec![
-            format!("{}'s {:?} was", pokemon, stat.stat),
+            format!("{}'s {} was", pokemon, stat.stat),
             format!(
                 "{} by {}!",
                 if stat.stage.is_positive() {
