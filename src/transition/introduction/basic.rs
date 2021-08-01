@@ -51,7 +51,7 @@ impl BasicBattleIntroduction {
 
     #[deprecated(note = "bad code, return vec of string (lines)")]
     pub(crate) fn concatenate<ID, P: PokemonView>(party: &PlayerKnowable<ID, P>) -> String {
-        let mut string = String::new();
+        let mut string = String::with_capacity(party.active_iter().map(|(.., p)| p.name().len() + 2).sum::<usize>() + 2);
         let len = party.active.len();
         for (index, instance) in party.active_iter() {
             if index != 0 {
@@ -60,8 +60,8 @@ impl BasicBattleIntroduction {
                 } else if index == len - 1 {
                     string.push_str(" and ");
                 }
-            string.push_str(&instance.name());
             }
+            string.push_str(&instance.name());
         }
         string
     }
