@@ -1,9 +1,13 @@
 use pokedex::{
-    pokemon::{Health, Level, PokemonInstance},
+    pokemon::{Experience, Health, Level, PokemonInstance},
     status::StatusEffectInstance,
 };
 
-use battle::{party::PlayerParty, player::PlayerKnowable, pokemon::{PokemonView, UnknownPokemon}};
+use battle::{
+    party::PlayerParty,
+    player::PlayerKnowable,
+    pokemon::{PokemonView, UnknownPokemon},
+};
 
 type Active = usize;
 type PartyIndex = usize;
@@ -18,19 +22,11 @@ pub trait PlayerView<ID> {
 
     fn active_mut(&mut self, active: Active) -> Option<&mut dyn GuiPokemonView>;
 
-    fn active_len(&self) -> usize;
-
-    fn len(&self) -> usize;
-
     fn active_eq(&self, active: Active, index: &Option<PartyIndex>) -> bool;
-
-    fn index(&self, active: Active) -> Option<PartyIndex>;
 
     fn pokemon(&self, index: PartyIndex) -> Option<&dyn GuiPokemonView>;
 
     fn replace(&mut self, active: Active, new: Option<PartyIndex>);
-
-    fn any_inactive(&self) -> bool;
 }
 
 impl<ID, P: GuiPokemonView> PlayerView<ID> for PlayerKnowable<ID, P> {
@@ -50,23 +46,11 @@ impl<ID, P: GuiPokemonView> PlayerView<ID> for PlayerKnowable<ID, P> {
         PlayerParty::active_mut(self, active).map(|p| p as _)
     }
 
-    fn active_len(&self) -> usize {
-        self.active.len()
-    }
-
-    fn len(&self) -> usize {
-        self.pokemon.len()
-    }
-
     fn active_eq(&self, active: usize, index: &Option<usize>) -> bool {
         self.active
             .get(active)
             .map(|i| i == index)
             .unwrap_or_default()
-    }
-
-    fn index(&self, active: Active) -> Option<PartyIndex> {
-        PlayerParty::index(self, active)
     }
 
     fn pokemon(&self, index: usize) -> Option<&dyn GuiPokemonView> {
@@ -77,9 +61,6 @@ impl<ID, P: GuiPokemonView> PlayerView<ID> for PlayerKnowable<ID, P> {
         PlayerParty::replace(self, active, new)
     }
 
-    fn any_inactive(&self) -> bool {
-        PlayerParty::any_inactive(self)
-    }
 }
 
 pub trait GuiPokemonView: PokemonView {
@@ -91,11 +72,13 @@ pub trait GuiPokemonView: PokemonView {
     fn set_effect(&mut self, effect: StatusEffectInstance);
     fn effect(&mut self) -> Option<&mut StatusEffectInstance>;
 
-    fn instance(&self) -> Option<&PokemonInstance>;
+    fn set_exp(&mut self, experience: Experience);
 
-    fn instance_mut(&mut self) -> Option<&mut PokemonInstance>;
+    fn instance(&mut self) -> Option<&mut PokemonInstance>;
 
-    // fn instance_mut(&mut self) -> Option<&mut PokemonInstance>;
+    fn view(&self) -> &dyn PokemonView;
+
+    fn exp(&self) -> Experience;
 }
 
 impl GuiPokemonView for PokemonInstance {
@@ -111,20 +94,28 @@ impl GuiPokemonView for PokemonInstance {
         self.percent_hp()
     }
 
-    fn instance(&self) -> Option<&PokemonInstance> {
-        Some(self)
-    }
-
-    fn instance_mut(&mut self) -> Option<&mut PokemonInstance> {
-        Some(self)
-    }
-
     fn set_effect(&mut self, effect: StatusEffectInstance) {
         self.effect = Some(effect);
     }
 
     fn effect(&mut self) -> Option<&mut StatusEffectInstance> {
         self.effect.as_mut()
+    }
+
+    fn set_exp(&mut self, experience: Experience) {
+        self.experience = experience;
+    }
+
+    fn instance(&mut self) -> Option<&mut PokemonInstance> {
+        Some(self)
+    }
+
+    fn view(&self) -> &dyn PokemonView {
+        self as _
+    }
+
+    fn exp(&self) -> Experience {
+        self.experience
     }
 }
 
@@ -145,14 +136,6 @@ impl GuiPokemonView for Option<UnknownPokemon> {
         self.as_ref().map(|v| v.hp).unwrap_or_default()
     }
 
-    fn instance(&self) -> Option<&PokemonInstance> {
-        self.as_ref().map(|u| u.instance.as_ref()).flatten()
-    }
-
-    fn instance_mut(&mut self) -> Option<&mut PokemonInstance> {
-        self.as_mut().map(|u| u.instance.as_mut()).flatten()
-    }
-
     fn set_effect(&mut self, effect: StatusEffectInstance) {
         if let Some(u) = self {
             u.effect = Some(effect);
@@ -161,5 +144,19 @@ impl GuiPokemonView for Option<UnknownPokemon> {
 
     fn effect(&mut self) -> Option<&mut StatusEffectInstance> {
         self.as_mut().map(|u| u.effect.as_mut()).flatten()
+    }
+
+    fn instance(&mut self) -> Option<&mut PokemonInstance> {
+        None
+    }
+
+    fn view(&self) -> &dyn PokemonView {
+        self as _
+    }
+
+    fn set_exp(&mut self, _: Experience) {}
+
+    fn exp(&self) -> Experience {
+        0
     }
 }

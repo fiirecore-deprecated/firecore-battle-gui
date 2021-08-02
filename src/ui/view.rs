@@ -1,10 +1,10 @@
 use core::ops::{Deref, DerefMut};
 
 use pokedex::{
-    id::Identifiable,
     context::PokedexClientContext,
-    texture::PokemonTexture,
     engine::{graphics::ZERO, tetra::graphics::Color, EngineContext},
+    id::Identifiable,
+    texture::PokemonTexture,
     TrainerId,
 };
 
@@ -16,7 +16,6 @@ use crate::{
         pokemon::{flicker::Flicker, PokemonRenderer, PokemonStatusGui},
         BattleGuiPosition, BattleGuiPositionIndex,
     },
-    view::GuiPokemonView,
 };
 
 pub type ActiveRenderer = Vec<ActivePokemonRenderer>;
@@ -53,17 +52,17 @@ impl ActivePokemonRenderer {
     pub fn local<ID>(
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
-        party: &LocalPlayer<ID>,
+        player: &LocalPlayer<ID>,
     ) -> ActiveRenderer {
-        let size = party.active.len() as u8;
-        party
+        let size = player.active.len() as u8;
+        player
             .active
             .iter()
             .enumerate()
             .map(|(i, index)| {
                 let position =
                     BattleGuiPositionIndex::new(BattleGuiPosition::Bottom, i as u8, size);
-                let pokemon = (*index).map(|index| &party.pokemon[index]);
+                let pokemon = (*index).map(|index| &player.pokemon[index]);
                 Self {
                     renderer: PokemonRenderer::with(
                         ctx,
@@ -105,16 +104,6 @@ impl ActivePokemonRenderer {
                 }
             })
             .collect()
-    }
-
-    pub fn update(&mut self, dex: &PokedexClientContext, pokemon: Option<&dyn GuiPokemonView>) {
-        self.update_status(pokemon, true);
-        self.renderer
-            .new_pokemon(dex, pokemon.map(|pokemon| *pokemon.pokemon().id()));
-    }
-
-    pub fn update_status(&mut self, pokemon: Option<&dyn GuiPokemonView>, reset: bool) {
-        self.status.update_gui(pokemon, reset);
     }
 
     pub fn draw(&self, ctx: &mut EngineContext) {

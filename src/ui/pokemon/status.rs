@@ -1,3 +1,4 @@
+use battle::pokemon::{PokemonView, UnknownPokemon};
 use pokedex::{
     context::PokedexClientContext,
     engine::{
@@ -8,16 +9,14 @@ use pokedex::{
         EngineContext,
     },
     gui::health::HealthBar,
-    pokemon::{PokemonInstance, stat::StatSet, Health, Level},
+    pokemon::{stat::StatSet, Health, Level, PokemonInstance},
 };
-use battle::pokemon::UnknownPokemon;
 
 use log::warn;
 
 use crate::{
     context::BattleGuiContext,
     ui::{exp_bar::ExperienceBar, BattleGuiPosition, BattleGuiPositionIndex},
-    view::GuiPokemonView,
 };
 
 pub struct PokemonStatusGui {
@@ -272,26 +271,39 @@ impl PokemonStatusGui {
         (self.exp.moving() && !self.small) || self.health.0.is_moving()
     }
 
-    pub fn update_gui(&mut self, pokemon: Option<&dyn GuiPokemonView>, reset: bool) {
-        self.update_gui_ex(
-            if let Some(pokemon) = pokemon {
-                Some((pokemon.level(), pokemon))
-            } else {
-                None
-            },
-            reset,
-        );
-    }
-
-    pub fn update_gui_ex(&mut self, pokemon: Option<(Level, &dyn GuiPokemonView)>, reset: bool) {
-        self.data.active = if let Some((previous, pokemon)) = pokemon {
+    pub fn update_gui(
+        &mut self,
+        pokemon: Option<&PokemonInstance>,
+        previous: Option<Level>,
+        reset: bool,
+    ) {
+        self.data.active = if let Some(pokemon) = pokemon {
             self.data.update(
-                previous,
+                previous.unwrap_or(pokemon.level()),
                 pokemon,
                 reset,
                 &mut self.health.0,
                 &mut self.exp,
                 !self.small,
+            );
+            true
+        } else {
+            false
+        };
+    }
+
+    pub fn update_gui_view(
+        &mut self,
+        pokemon: Option<&dyn PokemonView>,
+        previous: Option<Level>,
+        reset: bool,
+    ) {
+        self.data.active = if let Some(pokemon) = pokemon {
+            self.data.update_view(
+                previous.unwrap_or(pokemon.level()),
+                pokemon,
+                reset,
+                &mut self.health.0,
             );
             true
         } else {
@@ -340,14 +352,12 @@ impl PokemonStatusGui {
 }
 
 impl PokemonStatusData {
-    pub fn update(
+    pub fn update_view(
         &mut self,
         previous: Level,
-        pokemon: &dyn GuiPokemonView,
+        pokemon: &dyn PokemonView,
         reset: bool,
         health: &mut HealthBar,
-        exp: &mut ExperienceBar,
-        exp_active: bool,
     ) {
         if &self.name != pokemon.name() {
             self.name = pokemon.name().to_owned();
@@ -355,14 +365,23 @@ impl PokemonStatusData {
         if pokemon.level() == previous {
             health.resize(pokemon.hp(), reset);
         }
-        if exp_active {
-            if let Some(pokemon) = pokemon.instance() {
-                exp.update_exp(previous, pokemon, reset);
-                if pokemon.level == previous {}
-            }
-        }
         if reset {
             self.level = PokemonStatusGui::level(pokemon.level());
+        }
+    }
+
+    pub fn update(
+        &mut self,
+        previous: Level,
+        pokemon: &PokemonInstance,
+        reset: bool,
+        health: &mut HealthBar,
+        exp: &mut ExperienceBar,
+        exp_active: bool,
+    ) {
+        self.update_view(previous, pokemon, reset, health);
+        if exp_active {
+            exp.update_exp(previous, pokemon, reset);
         }
     }
 

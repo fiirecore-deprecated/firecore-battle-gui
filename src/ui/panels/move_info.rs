@@ -5,7 +5,7 @@ use pokedex::{
         text::TextColor,
         EngineContext,
     },
-    moves::instance::MoveInstance,
+    moves::MoveInstance,
 };
 
 pub struct MoveInfoPanel {

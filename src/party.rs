@@ -6,6 +6,13 @@ use pokedex::{
 
 use battle::pokemon::PokemonView;
 
+// #[derive(Default)]
+// pub struct LocalPlayer<ID> {
+//     pub id: ID,
+//     pub name: Option<String>,
+//     pub active: Vec<Option<usize>>,
+// }
+
 pub fn battle_party_gui(
     ctx: &PokedexClientContext,
     gui: &PartyGui,

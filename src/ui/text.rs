@@ -6,7 +6,7 @@ use pokedex::{
     },
     item::Item,
     moves::Move,
-    pokemon::{PokemonInstance, stat::StatStage, Experience, Level},
+    pokemon::{stat::StatStage, Experience, Level},
     status::Status,
     types::Effective,
 };
@@ -158,28 +158,25 @@ pub(crate) fn on_faint(
     });
 }
 
-pub(crate) fn on_catch(text: &mut MessageBox, pokemon: Option<&PokemonInstance>) {
-    text.push(match pokemon {
-        Some(pokemon) => MessagePage {
-            lines: vec![
-                String::from("Gotcha!"),
-                format!("{} was caught!", pokemon.name()),
-            ],
-            wait: None,
-        },
-        None => MessagePage { lines: vec![String::from("Could not catch pokemon!")], wait: Some(2.0) },
+pub(crate) fn on_catch(text: &mut MessageBox, pokemon: &str) {
+    text.push(MessagePage {
+        lines: vec![
+            String::from("Gotcha!"),
+            format!("{} was caught!", pokemon),
+        ],
+        wait: None,
     });
 }
 
 pub(crate) fn on_gain_exp(
     text: &mut MessageBox,
-    pokemon: &PokemonInstance,
+    pokemon: &str,
     experience: Experience,
     level: Level,
 ) {
     text.push(MessagePage {
         lines: vec![
-            format!("{} gained {} EXP. points", pokemon.name(), experience),
+            format!("{} gained {} EXP. points", pokemon, experience),
             format!("and {} levels!", level),
         ],
         wait: Some(1.0),
