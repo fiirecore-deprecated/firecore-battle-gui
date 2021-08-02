@@ -171,7 +171,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                         party: battle::party::PlayerParty {
                             id: data.id,
                             active: data.active,
-                            pokemon: Default::default(),
+                            pokemon: party.clone(),
                         },
                     };
                     self.remote.player = data.remote;
@@ -226,6 +226,7 @@ impl<ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGui<ID
                 ServerMessage::AddUnknown(index, unknown) => self.remote.party.add_unknown(index, unknown),
                 ServerMessage::Winner(player) => {
                     self.state = BattlePlayerState::Winner(player);
+                    *party = self.local.party.pokemon.clone();
                 }
                 ServerMessage::ConfirmFaintReplace(index, can) => {
                     debug!("to - do: checking faint replace");
