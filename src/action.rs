@@ -1,6 +1,6 @@
 use battle::moves::{
     client::{ClientActions, ClientMove},
-    MoveTargetLocation,
+    usage::target::MoveTargetLocation,
 };
 use pokedex::{
     moves::MoveRef,
@@ -8,12 +8,12 @@ use pokedex::{
 };
 
 #[derive(Debug, Clone)]
-pub enum BattleClientGuiAction<ID> {
+pub enum BattleClientGuiAction<'d, ID> {
     Action(ClientMove<ID>),
     Faint,
     Catch,
-    SetExp(Level, Experience, Vec<MoveRef>),
-    LevelUp(Vec<MoveRef>),
+    SetExp(Level, Experience, Vec<MoveRef<'d>>),
+    LevelUp(Vec<MoveRef<'d>>),
     Replace(Option<usize>),
 }
 
@@ -29,7 +29,7 @@ pub enum BattleClientGuiCurrent<ID> {
     LevelUp,
 }
 
-impl<ID> BattleClientGuiAction<ID> {
+impl<'d, ID> BattleClientGuiAction<'d, ID> {
     pub fn requires_user(&self) -> bool {
         matches!(self, Self::Faint)
     }

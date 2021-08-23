@@ -1,4 +1,4 @@
-use ::battle::{player::PlayerKnowable, pokemon::PokemonView};
+use ::battle::player::PlayerKnowable;
 use pokedex::{
     engine::{
         input::{pressed, Control},
@@ -7,8 +7,10 @@ use pokedex::{
     },
     item::ItemRef,
     moves::MoveTarget,
-    pokemon::PokemonInstance,
+    pokemon::OwnedRefPokemon,
 };
+
+use crate::view::GuiPokemonView;
 
 use self::{battle::BattleOptions, fight::FightPanel, target::TargetPanel};
 
@@ -21,29 +23,29 @@ pub mod fight;
 
 pub mod level;
 
-pub struct BattlePanel {
+pub struct BattlePanel<'d> {
     alive: bool,
 
-    pub active: BattlePanels,
+    pub active: BattlePanels<'d>,
 
     pub battle: BattleOptions,
-    pub fight: FightPanel,
+    pub fight: FightPanel<'d>,
     pub targets: TargetPanel,
 }
 
-pub enum BattlePanels {
+pub enum BattlePanels<'d> {
     Main,
     Fight,
-    Target(MoveTarget, Option<ItemRef>),
+    Target(MoveTarget, Option<ItemRef<'d>>),
 }
 
-impl Default for BattlePanels {
+impl<'d> Default for BattlePanels<'d> {
     fn default() -> Self {
         Self::Main
     }
 }
 
-impl BattlePanel {
+impl<'d> BattlePanel<'d> {
     pub fn new() -> Self {
         Self {
             alive: false,
@@ -54,7 +56,7 @@ impl BattlePanel {
         }
     }
 
-    pub fn user(&mut self, instance: &PokemonInstance) {
+    pub fn user(&mut self, instance: &OwnedRefPokemon<'d>) {
         self.battle.setup(instance);
         self.fight.user(instance);
         self.battle.cursor = 0;
@@ -63,14 +65,14 @@ impl BattlePanel {
         self.spawn();
     }
 
-    pub fn target<ID, P: PokemonView>(&mut self, targets: &PlayerKnowable<ID, P>) {
+    pub fn target<ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerKnowable<ID, P>) {
         self.targets.update_names(targets);
     }
 
     pub fn input(
         &mut self,
         ctx: &EngineContext,
-        pokemon: &PokemonInstance,
+        pokemon: &OwnedRefPokemon<'d>,
     ) -> Option<BattlePanels> {
         if self.alive {
             match self.active {
@@ -109,7 +111,7 @@ impl BattlePanel {
     }
 }
 
-impl Entity for BattlePanel {
+impl<'d> Entity for BattlePanel<'d> {
     fn spawn(&mut self) {
         self.alive = true;
         self.active = BattlePanels::default();

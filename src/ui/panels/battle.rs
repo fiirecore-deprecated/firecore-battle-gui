@@ -6,7 +6,7 @@ use pokedex::{
         text::TextColor,
         EngineContext,
     },
-    pokemon::PokemonInstance,
+    pokemon::OwnedRefPokemon,
 };
 
 pub struct BattleOptions {
@@ -24,7 +24,7 @@ impl BattleOptions {
         }
     }
 
-    pub fn setup(&mut self, instance: &PokemonInstance) {
+    pub fn setup<'d>(&mut self, instance: &OwnedRefPokemon<'d>) {
         self.pokemon_do = format!("{} do?", instance.name());
     }
 

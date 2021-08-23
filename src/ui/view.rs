@@ -3,12 +3,11 @@ use core::ops::{Deref, DerefMut};
 use pokedex::{
     context::PokedexClientContext,
     engine::{graphics::ZERO, tetra::graphics::Color, EngineContext},
-    id::Identifiable,
     texture::PokemonTexture,
-    TrainerId,
+    Identifiable, TrainerId,
 };
 
-use battle::player::{RemotePlayer, LocalPlayer};
+use battle::player::{InitRemotePlayer, LocalPlayer};
 
 use crate::{
     context::BattleGuiContext,
@@ -19,8 +18,8 @@ use crate::{
 };
 
 pub type ActiveRenderer = Vec<ActivePokemonRenderer>;
-pub type GuiLocalPlayer<ID> = ActivePlayer<LocalPlayer<ID>>;
-pub type GuiRemotePlayer<ID> = ActivePlayer<RemotePlayer<ID>>;
+pub type GuiLocalPlayer<'d, ID> = ActivePlayer<LocalPlayer<'d, ID>>;
+pub type GuiRemotePlayer<'d, ID> = ActivePlayer<InitRemotePlayer<'d, ID>>;
 
 #[derive(Default)]
 pub struct ActivePlayer<T: Default> {
@@ -77,10 +76,10 @@ impl ActivePokemonRenderer {
             .collect()
     }
 
-    pub fn remote<ID>(
+    pub fn remote<'d, ID>(
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
-        party: &RemotePlayer<ID>,
+        party: &InitRemotePlayer<'d, ID>,
     ) -> ActiveRenderer {
         let size = party.active.len() as u8;
         party

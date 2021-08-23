@@ -47,10 +47,10 @@ impl BattleGuiPositionIndex {
     }
 }
 
-pub struct BattleGui {
+pub struct BattleGui<'d> {
     pub background: BattleBackground,
 
-    pub panel: BattlePanel,
+    pub panel: BattlePanel<'d>,
 
     pub text: MessageBox,
 
@@ -59,10 +59,10 @@ pub struct BattleGui {
     pub opener: BattleOpenerManager,
     pub introduction: BattleIntroductionManager,
     pub trainer: BattleTrainerPartyIntro,
-    pub level_up: LevelUpMovePanel,
+    pub level_up: LevelUpMovePanel<'d>,
 }
 
-impl BattleGui {
+impl<'d> BattleGui<'d> {
     pub fn new(ctx: &mut Context, gui: &BattleGuiContext) -> Self {
         Self {
             background: BattleBackground::new(ctx, gui),

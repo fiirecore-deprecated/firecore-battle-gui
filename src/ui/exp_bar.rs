@@ -5,7 +5,7 @@ use pokedex::{
         tetra::{graphics::Color, math::Vec2},
         EngineContext,
     },
-    pokemon::{PokemonInstance, Experience, Level},
+    pokemon::{OwnedRefPokemon, Experience, Level},
 };
 
 pub struct ExperienceBar {
@@ -36,7 +36,7 @@ impl ExperienceBar {
         (current as f32 * Self::WIDTH / max as f32).clamp(0.0, Self::WIDTH)
     }
 
-    pub fn update_exp(&mut self, previous: Level, pokemon: &PokemonInstance, reset: bool) {
+    pub fn update_exp<'d>(&mut self, previous: Level, pokemon: &OwnedRefPokemon, reset: bool) {
         let width = Self::width(
             pokemon.experience,
             pokemon.pokemon.training.growth_rate.max_exp(pokemon.level),

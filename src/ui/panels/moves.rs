@@ -8,15 +8,15 @@ use pokedex::{
         EngineContext,
     },
     moves::MoveRef,
-    pokemon::PokemonInstance,
+    pokemon::OwnedRefPokemon,
 };
 
-pub struct MovePanel {
+pub struct MovePanel<'d> {
     pub cursor: usize,
-    pub names: [Option<(MoveRef, TextColor)>; 4],
+    pub names: [Option<(MoveRef<'d>, TextColor)>; 4],
 }
 
-impl MovePanel {
+impl<'d> MovePanel<'d> {
     pub fn new() -> Self {
         Self {
             cursor: 0,
@@ -24,10 +24,10 @@ impl MovePanel {
         }
     }
 
-    pub fn update_names(&mut self, instance: &PokemonInstance) {
+    pub fn update_names(&mut self, instance: &OwnedRefPokemon<'d>) {
         for (index, instance) in instance.moves.iter().enumerate() {
             self.names[index] = Some((
-                instance.move_ref,
+                instance.m,
                 if instance.empty() {
                     TextColor::Red
                 } else {
@@ -100,7 +100,7 @@ impl MovePanel {
     }
 }
 
-impl Reset for MovePanel {
+impl<'d> Reset for MovePanel<'d> {
     fn reset(&mut self) {
         self.cursor = 0;
     }

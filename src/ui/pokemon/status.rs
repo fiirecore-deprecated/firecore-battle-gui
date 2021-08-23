@@ -1,4 +1,4 @@
-use battle::pokemon::{PokemonView, UnknownPokemon};
+use battle::pokemon::battle::InitUnknownPokemon;
 use pokedex::{
     context::PokedexClientContext,
     engine::{
@@ -9,7 +9,7 @@ use pokedex::{
         EngineContext,
     },
     gui::health::HealthBar,
-    pokemon::{stat::StatSet, Health, Level, PokemonInstance},
+    pokemon::{Health, Level, OwnedRefPokemon, Pokemon},
 };
 
 use log::warn;
@@ -17,6 +17,7 @@ use log::warn;
 use crate::{
     context::BattleGuiContext,
     ui::{exp_bar::ExperienceBar, BattleGuiPosition, BattleGuiPositionIndex},
+    view::GuiPokemonView,
 };
 
 pub struct PokemonStatusGui {
@@ -75,11 +76,11 @@ impl PokemonStatusGui {
         }
     }
 
-    pub fn with_known(
+    pub fn with_known<'d>(
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
         index: BattleGuiPositionIndex,
-        pokemon: Option<&PokemonInstance>,
+        pokemon: Option<&OwnedRefPokemon<'d>>,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
         Self {
@@ -110,11 +111,11 @@ impl PokemonStatusGui {
         }
     }
 
-    pub fn with_unknown(
+    pub fn with_unknown<'d>(
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
         index: BattleGuiPositionIndex,
-        pokemon: Option<&UnknownPokemon>,
+        pokemon: Option<&InitUnknownPokemon<'d>>,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
         Self {
@@ -241,7 +242,7 @@ impl PokemonStatusGui {
         self.health.0.update(delta);
     }
 
-    pub fn update_exp(&mut self, delta: f32, pokemon: &PokemonInstance) {
+    pub fn update_exp<'d>(&mut self, delta: f32, pokemon: &OwnedRefPokemon<'d>) {
         if self.data.active {
             if self.small {
                 self.exp.update_exp(pokemon.level, pokemon, true)
@@ -249,7 +250,7 @@ impl PokemonStatusGui {
                 if self.exp.update(delta) {
                     self.data.level.1 += 1;
                     self.data.level.0 = Self::level_fmt(self.data.level.1);
-                    let base = StatSet::hp(
+                    let base = Pokemon::base_hp(
                         pokemon.pokemon.base.hp,
                         pokemon.ivs.hp,
                         pokemon.evs.hp,
@@ -271,9 +272,9 @@ impl PokemonStatusGui {
         (self.exp.moving() && !self.small) || self.health.0.is_moving()
     }
 
-    pub fn update_gui(
+    pub fn update_gui<'d>(
         &mut self,
-        pokemon: Option<&PokemonInstance>,
+        pokemon: Option<&OwnedRefPokemon<'d>>,
         previous: Option<Level>,
         reset: bool,
     ) {
@@ -294,7 +295,7 @@ impl PokemonStatusGui {
 
     pub fn update_gui_view(
         &mut self,
-        pokemon: Option<&dyn PokemonView>,
+        pokemon: Option<&dyn GuiPokemonView>,
         previous: Option<Level>,
         reset: bool,
     ) {
@@ -355,7 +356,7 @@ impl PokemonStatusData {
     pub fn update_view(
         &mut self,
         previous: Level,
-        pokemon: &dyn PokemonView,
+        pokemon: &dyn GuiPokemonView,
         reset: bool,
         health: &mut HealthBar,
     ) {
@@ -370,10 +371,10 @@ impl PokemonStatusData {
         }
     }
 
-    pub fn update(
+    pub fn update<'d>(
         &mut self,
         previous: Level,
-        pokemon: &PokemonInstance,
+        pokemon: &OwnedRefPokemon<'d>,
         reset: bool,
         health: &mut HealthBar,
         exp: &mut ExperienceBar,
