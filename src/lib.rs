@@ -169,6 +169,8 @@ impl<'d, ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGu
                     self.remote.player.name = data.remote.name;
                     self.remote.player.party.pokemon = data.remote.party.pokemon.into_iter().flat_map(|u| u.map(|u| UninitUnknownPokemon::init(u, self.pokedex))).collect();
                     self.data = data.data;
+                    self.local.renderer = ActivePokemonRenderer::local(&self.context, dex, &self.local);
+                    self.remote.renderer = ActivePokemonRenderer::remote(&self.context, dex, &self.remote);
                 },
                 ServerMessage::StartSelecting => {
                     self.should_select = true;
@@ -826,11 +828,6 @@ impl<'d, ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGu
                 }
             }
         }
-    }
-
-    pub fn on_begin(&mut self, dex: &PokedexClientContext) {
-        self.local.renderer = ActivePokemonRenderer::local(&self.context, dex, &self.local);
-        self.remote.renderer = ActivePokemonRenderer::remote(&self.context, dex, &self.remote);
     }
 
     pub fn draw(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, party: &Party<OwnedRefPokemon<'d>>, bag: &Bag) {
