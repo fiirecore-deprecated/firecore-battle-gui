@@ -118,6 +118,6 @@ impl ActivePokemonRenderer {
                 1.0
             },
         );
-        self.renderer.moves.draw(ctx);
+        // self.renderer.moves.draw(ctx);
     }
 }

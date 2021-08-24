@@ -24,10 +24,10 @@ use self::{
     spawner::{Spawner, SpawnerState},
 };
 
-mod moves;
+// mod moves;
 mod status;
 
-pub use moves::*;
+// pub use moves::*;
 pub use status::*;
 pub mod bounce;
 
@@ -36,7 +36,7 @@ pub mod flicker;
 pub mod spawner;
 
 pub struct PokemonRenderer {
-    pub moves: MoveRenderer,
+    // pub moves: MoveRenderer,
 
     pub pokemon: Option<Texture>,
     side: PokemonTexture,
@@ -55,7 +55,7 @@ impl PokemonRenderer {
         side: PokemonTexture,
     ) -> Self {
         Self {
-            moves: MoveRenderer::new(index.position),
+            // moves: MoveRenderer::new(index.position),
             pokemon: None,
             side,
             pos: Self::position(index),
@@ -128,7 +128,7 @@ impl PokemonRenderer {
                     texture.draw(
                         ctx,
                         position(
-                            pos.x + self.moves.pokemon_x(),
+                            pos.x, //+ self.moves.pokemon_x(),
                             pos.y - texture.height() as f32,
                         )
                         .color(color),

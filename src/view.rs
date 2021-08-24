@@ -9,7 +9,7 @@ use battle::{
 type Active = usize;
 type PartyIndex = usize;
 
-#[deprecated]
+#[deprecated(note = "edit")]
 pub trait PlayerView<'d, ID> {
     fn id(&self) -> &ID;
 

@@ -7,7 +7,7 @@ use context::BattleGuiContext;
 
 use log::{warn, debug};
 
-use pokedex::{Identifiable, battle_move::BattleMovedex, context::PokedexClientContext, gui::{bag::BagGui, party::PartyGui}, item::{Itemdex, bag::Bag, usage::{ItemUsageKind}}, moves::{MoveTarget, Movedex}, pokemon::{OwnedIdPokemon, OwnedRefPokemon, Party, Pokedex}};
+use pokedex::{Identifiable, context::PokedexClientContext, gui::{bag::BagGui, party::PartyGui}, item::{Itemdex, bag::Bag, usage::{ItemUsageKind}}, moves::{MoveTarget, Movedex}, pokemon::{OwnedIdPokemon, OwnedRefPokemon, Party, Pokedex}, types::Effective};
 
 use pokedex::engine::{
     graphics::ZERO, 
@@ -16,7 +16,7 @@ use pokedex::engine::{
     EngineContext,
 };
 
-use battle::{BattleData, BattleEndpoint, BattleType, BoundAction, message::{ClientMessage, ServerMessage}, moves::{client::{ClientAction, ClientMove, ClientActions}, usage::target::{MoveTargetInstance, MoveTargetLocation}, BattleMove}, pokemon::{PokemonIndex, battle::UninitUnknownPokemon}};
+use battle::{BattleData, BattleEndpoint, BattleType, BoundAction, message::{ClientMessage, ServerMessage}, moves::{ClientMoveAction, ClientMove, target::{MoveTargetInstance, TargetLocation}, BattleMove}, pokemon::{PokemonIndex, battle::UninitUnknownPokemon}};
 
 use self::{
     ui::{
@@ -87,8 +87,8 @@ impl<ID> Default for Messages<ID> {
 
 #[derive(Debug)]
 struct MoveQueue<'d, ID> {
-    actions: VecDeque<BoundAction<ID, BattleClientGuiAction<'d, ID>>>,
-    current: Option<BoundAction<ID, BattleClientGuiCurrent<ID>>>,
+    actions: VecDeque<BoundAction<ID, BattleClientGuiAction<'d>>>,
+    current: Option<BoundAction<ID, BattleClientGuiCurrent>>,
 }
 
 
@@ -453,98 +453,92 @@ impl<'d, ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGu
 
                                                 match self.movedex.try_get(&pokemon_move) {
                                                     Some(pokemon_move) => {
+
                                                         let user_active = user.active(instance.pokemon.index).unwrap();
 
                                                         // if targets.iter().any(|(t, _)| match &t {
-                                                        //     MoveTargetLocation::Opponent(index) => other.active(*index),
-                                                        //     MoveTargetLocation::Team(index) => user.active(*index),
-                                                        //     MoveTargetLocation::User => user.active(instance.pokemon.index),
+                                                        //     TargetLocation::Opponent(index) => other.active(*index),
+                                                        //     TargetLocation::Team(index) => user.active(*index),
+                                                        //     TargetLocation::User => user.active(instance.pokemon.index),
                                                         // }.map(|v| !v.fainted()).unwrap_or_default()) {
         
                                                         ui::text::on_move(&mut self.gui.text, &pokemon_move, user_active.name());
         
                                                         // }
+
+                                                        let mut faint = Vec::new();
             
-                                                        for ClientActions { location, actions } in &targets {
+                                                        for (location, action) in &targets {
             
-                                                            {
-            
-                                                                let user_pokemon = user.active_mut(instance.pokemon.index).unwrap();
-            
-                                                                let user_pokemon_ui = &mut user_ui[instance.pokemon.index];
-        
-                                                                // if let Some(battle_move) = BattleMovedex::try_get(pokemon_move.id()) {
-                                                                //     user_pokemon_ui.renderer.moves.init(battle_move.script());
-                                                                // } 
-        
-                                                                for moves in actions {
-                                                                    match moves {
-                                                                        ClientAction::UserHP(damage) => user_pokemon.set_hp(*damage),
-                                                                        ClientAction::Fail => ui::text::on_fail(&mut self.gui.text, vec![format!("{} cannot use move", user_pokemon.name()), format!("{} is unimplemented", pokemon_move.name)]),
-                                                                        ClientAction::Miss => ui::text::on_miss(&mut self.gui.text, user_pokemon.name()),
-                                                                        ClientAction::SetExp(experience, level) => {
-                                                                            let previous = user_pokemon.level();
-                                                                            user_pokemon.set_level(*level);
-                                                                            user_pokemon.set_exp(*experience);
-                                                                            if let Some(user_pokemon) = user_pokemon.instance() {
-                                                                                let movedex = self.movedex;
-                                                                                let moves = user_pokemon.on_level_up(previous).flat_map(|id| movedex.try_get(&id)).collect();
-                                                                                queue.actions.push_front(BoundAction { pokemon: instance.pokemon, action: BattleClientGuiAction::SetExp(previous, *experience, moves) });
-                                                                            }
-                                                                        }
-                                                                        _ => (),
-                                                                    }
-                                                                }
-        
-                                                                match user_pokemon.instance() {
-                                                                    Some(pokemon) => user_pokemon_ui.status.update_gui(Some(pokemon), None, false),
-                                                                    None => user_pokemon_ui.status.update_gui_view(Some(user_pokemon), None, false),
-                                                                }
-            
-                                                            }
-            
-                                                            let (target, target_ui) = match location {
-                                                                MoveTargetLocation::Opponent(index) => (other.active_mut(*index), &mut other_ui[*index]),
-                                                                MoveTargetLocation::Team(index) => (user.active_mut(*index), &mut user_ui[*index]),
-                                                                MoveTargetLocation::User => (user.active_mut(instance.pokemon.index), &mut user_ui[instance.pokemon.index]),
-                                                            };
+                                                                let (target, target_ui) = match *location {
+                                                                    TargetLocation::Opponent(index) => (other.active_mut(index), &mut other_ui[index]),
+                                                                    TargetLocation::Team(index) => (user.active_mut(index), &mut user_ui[index]),
+                                                                    TargetLocation::User => (user.active_mut(instance.pokemon.index), &mut user_ui[instance.pokemon.index]),
+                                                                };
             
                                                             if let Some(target) = target {
-                                                                for moves in actions {
-                                                                    match moves {
-                                                                        ClientAction::TargetHP(damage, crit) => {
-                                                                            target.set_hp(*damage);
-                                                                            if damage >= &0.0 {
-                                                                                target_ui.renderer.flicker()
+                                                                    match *action {
+                                                                        ClientMoveAction::SetDamage(result) => {
+                                                                            target.set_hp(result.damage);
+                                                                            match result.damage > 0.0 {
+                                                                                true => target_ui.renderer.flicker(),
+                                                                                false => faint.push(*location),
                                                                             }
-                                                                            if *crit {
+                                                                            if result.effective != Effective::Effective {
+                                                                                ui::text::on_effective(&mut self.gui.text, &result.effective)
+                                                                            }
+                                                                            if result.crit {
                                                                                 ui::text::on_crit(&mut self.gui.text);
                                                                             }
                                                                         },
-                                                                        ClientAction::Effective(effective) => ui::text::on_effective(&mut self.gui.text, &effective),
-                                                                        ClientAction::Stat(stat, stage) => ui::text::on_stat_stage(&mut self.gui.text, target.name(), *stat, *stage),
-                                                                        ClientAction::Faint(target_instance) => queue.actions.push_front(
-                                                                            BoundAction {
-                                                                                pokemon: *target_instance,
-                                                                                action: BattleClientGuiAction::Faint,
+                                                                        ClientMoveAction::SetHP(hp) => target.set_hp(hp),
+                                                                        ClientMoveAction::Error => ui::text::on_fail(&mut self.gui.text, vec![format!("{} cannot use move", target.name()), format!("{}, as there was an error.", pokemon_move.name)]),
+                                                                        ClientMoveAction::Miss => ui::text::on_miss(&mut self.gui.text, target.name()),
+                                                                        ClientMoveAction::SetExp(experience, level) => {
+                                                                            let previous = target.level();
+                                                                            target.set_level(level);
+                                                                            target.set_exp(experience);
+                                                                            if let Some(user_pokemon) = target.instance() {
+                                                                                let movedex = self.movedex;
+                                                                                let moves = user_pokemon.on_level_up(previous).flat_map(|id| movedex.try_get(&id)).collect();
+                                                                                queue.actions.push_front(BoundAction { pokemon: instance.pokemon, action: BattleClientGuiAction::SetExp(previous, experience, moves) });
                                                                             }
-                                                                        ),
-                                                                        ClientAction::Ailment(ailment) => {
-                                                                            target.set_ailment(*ailment);
+                                                                        }
+                                                                        ClientMoveAction::AddStat(stat, stage) => ui::text::on_stat_stage(&mut self.gui.text, target.name(), stat, stage),
+                                                                        ClientMoveAction::Ailment(ailment) => {
+                                                                            target.set_ailment(ailment);
                                                                             ui::text::on_status(&mut self.gui.text, target.name(), ailment.ailment);
                                                                         }
-                                                                        ClientAction::Miss | ClientAction::UserHP(..) | ClientAction::SetExp(..) | ClientAction::Fail => (),
                                                                     }
-                                                                }
         
                                                                 match target.instance() {
                                                                     Some(i) => target_ui.status.update_gui(Some(i), None, false),
                                                                     None => target_ui.status.update_gui_view(Some(target), None, false),
                                                                 }
+
                                                             } else {
                                                                 target_ui.status.update_gui(None, None, false);
                                                             }
                                                         }
+
+                                                        for location in faint {
+                                                            queue.actions.push_front(
+                                                                BoundAction {
+                                                                    pokemon: PokemonIndex {
+                                                                        team: match (self.local.party.id == instance.pokemon.team) == location.is_team() {
+                                                                            true => self.local.party.id,
+                                                                            false => self.remote.party.id,
+                                                                        },
+                                                                        index: match location {
+                                                                            TargetLocation::Opponent(i) | TargetLocation::Team(i) => i,
+                                                                            TargetLocation::User => instance.pokemon.index,
+                                                                        }
+                                                                    },
+                                                                    action: BattleClientGuiAction::Faint,
+                                                                }
+                                                            )
+                                                        }
+
                                                         Some(BattleClientGuiCurrent::Move(targets))
                                                     }
                                                     None => None,
@@ -568,10 +562,10 @@ impl<'d, ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGu
                                                     }
                                                     Some(BattleClientGuiCurrent::UseItem(match &item.usage.kind {
                                                         ItemUsageKind::Script | ItemUsageKind::Actions(..) | ItemUsageKind::None => match index == instance.pokemon.index {
-                                                            true => MoveTargetLocation::User,
-                                                            false => MoveTargetLocation::Team(index),
+                                                            true => TargetLocation::User,
+                                                            false => TargetLocation::Team(index),
                                                         },
-                                                        ItemUsageKind::Pokeball => MoveTargetLocation::Opponent(index),
+                                                        ItemUsageKind::Pokeball => TargetLocation::Opponent(index),
                                                     }))
                                                 } else {
                                                     None
@@ -666,28 +660,28 @@ impl<'d, ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGu
                         match &mut instance.action {
                             BattleClientGuiCurrent::Move(targets) => {
 
-                                user_ui[instance.pokemon.index].renderer.moves.update(delta);
+                                // user_ui[instance.pokemon.index].renderer.moves.update(delta);
 
                                 match self.gui.text.finished() {
                                     false => self.gui.text.update(ctx, delta),
-                                    true => if (self.gui.text.page() > 0 || self.gui.text.waiting()) && user_ui[instance.pokemon.index].renderer.moves.finished() {
+                                    true => if (self.gui.text.page() > 0 || self.gui.text.waiting()) {//&& user_ui[instance.pokemon.index].renderer.moves.finished() {
                                         let index = instance.pokemon.index;
-                                        targets.retain(|a| {
-                                            let ui = match a.location {
-                                                MoveTargetLocation::Opponent(i) => &other_ui[i],
-                                                MoveTargetLocation::Team(i) => &user_ui[i],
-                                                MoveTargetLocation::User => &user_ui[index],
+                                        targets.retain(|(location, action)| {
+                                            let ui = match *location {
+                                                TargetLocation::Opponent(i) => &other_ui[i],
+                                                TargetLocation::Team(i) => &user_ui[i],
+                                                TargetLocation::User => &user_ui[index],
                                             };
                                             ui.renderer.flicker.flickering() || ui.status.health_moving()
                                         });
                                         if targets.is_empty() {
                                             queue.current = None;
                                         } else {
-                                            for target in targets {
-                                                let ui = match target.location {
-                                                    MoveTargetLocation::Opponent(i) => &mut other_ui[i],
-                                                    MoveTargetLocation::Team(i) => &mut user_ui[i],
-                                                    MoveTargetLocation::User => &mut user_ui[instance.pokemon.index],
+                                            for (location, action) in targets {
+                                                let ui = match *location {
+                                                    TargetLocation::Opponent(i) => &mut other_ui[i],
+                                                    TargetLocation::Team(i) => &mut user_ui[i],
+                                                    TargetLocation::User => &mut user_ui[instance.pokemon.index],
                                                 };
                                                 ui.renderer.flicker.update(delta);
                                                 ui.status.update_hp(delta);
@@ -723,9 +717,9 @@ impl<'d, ID: Sized + Default + Copy + Debug + Display + Eq + Ord> BattlePlayerGu
                             },
                             BattleClientGuiCurrent::UseItem(target) => {
                                 let target = match target {
-                                    MoveTargetLocation::Opponent(i) => &mut other_ui[*i],
-                                    MoveTargetLocation::Team(i) => &mut user_ui[*i],
-                                    MoveTargetLocation::User => &mut user_ui[instance.pokemon.index],
+                                    TargetLocation::Opponent(i) => &mut other_ui[*i],
+                                    TargetLocation::Team(i) => &mut user_ui[*i],
+                                    TargetLocation::User => &mut user_ui[instance.pokemon.index],
                                 };
                                 if !self.gui.text.finished() {
                                     self.gui.text.update(ctx, delta)
