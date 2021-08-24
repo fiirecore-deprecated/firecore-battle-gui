@@ -122,6 +122,25 @@ impl BasicBattleIntroduction {
             active.status.draw(ctx, self.offsets.0, 0.0);
         }
     }
+
+    fn offsets0(&mut self, delta: f32) {
+        if self.offsets.0 != 0.0 {
+            self.offsets.0 += delta * 240.0;
+            if self.offsets.0 > 0.0 {
+                self.offsets.0 = 0.0;
+            }
+        }
+    }
+
+    fn offsets1(&mut self, delta: f32) {
+        if self.offsets.1 != 0.0 {
+            self.offsets.1 -= delta * 240.0;
+            if self.offsets.1 < 0.0 {
+                self.offsets.1 = 0.0;
+            }
+        }
+    }
+
 }
 
 impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
@@ -160,17 +179,14 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
 
         if let Some(active) = opponent.renderer.get(0) {
             if active.status.alive() {
-                if self.offsets.0 != 0.0 {
-                    self.offsets.0 += delta * 240.0;
-                    if self.offsets.0 > 0.0 {
-                        self.offsets.0 = 0.0;
-                    }
-                }
+                self.offsets0(delta);
             } else if text.waiting() && text.page() >= text.pages() - 2 {
                 for active in opponent.renderer.iter_mut() {
                     active.status.spawn();
                 }
             }
+        } else {
+            self.offsets0(delta);
         }
 
         if let Some(active) = player.renderer.get(0) {
@@ -179,18 +195,15 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
                     active.renderer.spawner.update(ctx, delta);
                 }
             } else if active.status.alive() {
-                if self.offsets.1 != 0.0 {
-                    self.offsets.1 -= delta * 240.0;
-                    if self.offsets.1 < 0.0 {
-                        self.offsets.1 = 0.0;
-                    }
-                }
+                self.offsets1(delta);
             } else if self.counter >= Self::PLAYER_T2 {
                 for active in player.renderer.iter_mut() {
                     active.renderer.spawn();
                     active.status.spawn();
                 }
             }
+        } else {
+            self.offsets1(delta);
         }
     }
 
