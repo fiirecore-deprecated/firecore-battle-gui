@@ -1,8 +1,13 @@
 [package]
 name = "firecore-battle-gui"
-version = "0.0.1"
+version = "0.0.1-alpha.1"
 authors = ["Rhys H <donotdoughnut99@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/fiirecore/battle-gui"
+license = "MIT"
+readme = "README.md"
+keywords = ["battle", "gamedev"]
+categories = ["game-development"]
 
 [features]
 default = ["audio"]
@@ -11,7 +16,7 @@ audio = ["firecore-pokedex-engine/audio"]
 [dependencies]
 log = "0.4"
 firecore-battle = { version = "0.0.5", default-features = false, features = ["default_endpoint"] }
-firecore-pokedex-engine = { git = "https://github.com/DoNotDoughnut/firecore-pokedex-engine", rev = "61ee3a8", default-features = false }
+firecore-pokedex-engine = { version = "0.0.1", default-features = false }
 rand = { version = "0.8", default-features = false }
 crossbeam-channel = "0.5"
 hashbrown = "0.11"
