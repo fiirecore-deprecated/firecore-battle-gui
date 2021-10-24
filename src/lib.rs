@@ -241,7 +241,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
         }
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut Bag<'d, impl Dex<Item>>) {
+    pub fn update(&mut self, ctx: &EngineContext, dex: &PokedexClientContext, delta: f32, bag: &mut Bag<'d>) {
         match &mut self.state {
             BattlePlayerState::WaitToStart | BattlePlayerState::Winner(..) => (),
             BattlePlayerState::Opening(state) => match state {
@@ -816,7 +816,7 @@ impl<'d, ID: Default + Clone + Debug + Hash + Eq, const AS: usize> BattlePlayerG
         }
     }
 
-    pub fn draw(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, party: &Party<OwnedPokemon<'d>>, bag: &Bag<impl Dex<Item>>) {
+    pub fn draw(&self, ctx: &mut EngineContext, dex: &PokedexClientContext, party: &Party<OwnedPokemon<'d>>, bag: &Bag<'d>) {
         if !matches!(self.state, BattlePlayerState::WaitToStart) {
             self.gui.background.draw(ctx, 0.0);
             self.remotes.values().for_each(|remote| remote.renderer.iter().for_each(|active| active.draw(ctx)));
