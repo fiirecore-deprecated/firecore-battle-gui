@@ -1,5 +1,6 @@
 [package]
 name = "firecore-battle-gui"
+description = "Battle GUI client for firecore-battle"
 version = "0.0.1-alpha.1"
 authors = ["Rhys H <donotdoughnut99@gmail.com>"]
 edition = "2018"
