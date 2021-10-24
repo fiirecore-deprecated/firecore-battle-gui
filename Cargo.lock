@@ -318,7 +318,8 @@ dependencies = [
 [[package]]
 name = "firecore-battle"
 version = "0.0.5"
-source = "git+https://github.com/fiirecore/battle#10f6610d8cfae8b17fc0e7242f21fb2d861a8995"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "740469ef87c1494482bfe0515c7de15d856f274ac2f7f6e0c6c22d2a6555ae00"
 dependencies = [
  "crossbeam-channel",
  "firecore-pokedex",
@@ -380,7 +381,7 @@ dependencies = [
 [[package]]
 name = "firecore-pokedex-engine"
 version = "0.5.0-beta.2021-08-16"
-source = "git+https://github.com/DoNotDoughnut/firecore-pokedex-engine#61ee3a875e75a68ab2e4d97f2818f3af9e44b5d6"
+source = "git+https://github.com/DoNotDoughnut/firecore-pokedex-engine?rev=61ee3a8#61ee3a875e75a68ab2e4d97f2818f3af9e44b5d6"
 dependencies = [
  "firecore-engine",
  "firecore-pokedex",
