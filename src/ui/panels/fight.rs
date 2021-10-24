@@ -3,7 +3,7 @@ use pokedex::{
         EngineContext,
         util::Reset,
     },
-    pokemon::OwnedRefPokemon,
+    pokemon::owned::OwnedPokemon,
 };
 
 use super::{move_info::MoveInfoPanel, moves::MovePanel};
@@ -21,12 +21,12 @@ impl<'d> FightPanel<'d> {
         }
     }
 
-    pub fn user(&mut self, instance: &OwnedRefPokemon<'d>) {
+    pub fn user(&mut self, instance: &OwnedPokemon<'d>) {
         self.moves.update_names(instance);
         self.update_move(instance);
     }
 
-    pub fn update_move(&mut self, pokemon: &OwnedRefPokemon<'d>) {
+    pub fn update_move(&mut self, pokemon: &OwnedPokemon<'d>) {
         if let Some(pmove) = pokemon.moves.get(self.moves.cursor) {
             self.info.update_move(pmove);
         }
@@ -37,7 +37,7 @@ impl<'d> FightPanel<'d> {
         self.info.draw(ctx);
     }
 
-    pub fn input(&mut self, ctx: &EngineContext, pokemon: &OwnedRefPokemon<'d>) {
+    pub fn input(&mut self, ctx: &EngineContext, pokemon: &OwnedPokemon<'d>) {
         if self.moves.input(ctx) {
             self.update_move(pokemon);
         }

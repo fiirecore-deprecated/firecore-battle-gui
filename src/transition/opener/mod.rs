@@ -30,16 +30,16 @@ impl Default for Openers {
     }
 }
 
-pub(crate) trait BattleOpener<ID: Default>: Completable {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>);
+pub(crate) trait BattleOpener<ID, const AS: usize>: Completable {
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID, AS>);
 
     fn update(&mut self, delta: f32);
 
     fn draw_below_panel(
         &self,
         ctx: &mut EngineContext,
-        player: &ActiveRenderer,
-        opponent: &ActiveRenderer,
+        player: &ActiveRenderer<AS>,
+        opponent: &ActiveRenderer<AS>,
     );
 
     fn draw(&self, ctx: &mut EngineContext);
@@ -77,7 +77,7 @@ impl DefaultBattleOpener {
 }
 
 impl DefaultBattleOpener {
-    pub fn spawn<ID: Default>(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID>) {}
+    pub fn spawn<ID: Default, const AS: usize>(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID, AS>) {}
 
     pub fn update(&mut self, delta: f32) {
         match self.wait < 0.0 {
@@ -106,11 +106,11 @@ impl DefaultBattleOpener {
         }
     }
 
-    pub fn draw_below_panel(
+    pub fn draw_below_panel<const AS: usize>(
         &self,
         ctx: &mut EngineContext,
-        _player: &ActiveRenderer,
-        _opponent: &ActiveRenderer,
+        _player: &ActiveRenderer<AS>,
+        _opponent: &ActiveRenderer<AS>,
     ) {
         self.player.draw_region(
             ctx,

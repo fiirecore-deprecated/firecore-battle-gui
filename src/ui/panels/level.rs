@@ -6,8 +6,8 @@ use pokedex::{
         util::{Completable, Entity},
         EngineContext,
     },
-    moves::MoveRef,
-    pokemon::OwnedRefPokemon,
+    moves::Move,
+    pokemon::owned::OwnedPokemon,
 };
 
 use super::moves::MovePanel;
@@ -18,7 +18,7 @@ pub struct LevelUpMovePanel<'d> {
 
     move_panel: MovePanel<'d>,
 
-    moves: Vec<MoveRef<'d>>,
+    moves: Vec<&'d Move>,
 }
 
 enum LevelUpState {
@@ -36,14 +36,14 @@ impl<'d> LevelUpMovePanel<'d> {
         }
     }
 
-    pub fn spawn(&mut self, instance: &OwnedRefPokemon<'d>, text: &mut MessageBox, moves: Vec<MoveRef<'d>>) {
+    pub fn spawn(&mut self, instance: &OwnedPokemon<'d>, text: &mut MessageBox, moves: Vec<&'d Move>) {
         self.state = LevelUpState::Text;
         self.moves = moves;
         self.move_panel.update_names(instance);
         text.despawn();
     }
 
-    pub fn update(&mut self, ctx: &EngineContext, text: &mut MessageBox, delta: f32, pokemon: &mut OwnedRefPokemon<'d>) -> Option<(usize, MoveRef)> {
+    pub fn update(&mut self, ctx: &EngineContext, text: &mut MessageBox, delta: f32, pokemon: &mut OwnedPokemon<'d>) -> Option<(usize, &'d Move)> {
         match self.state {
             LevelUpState::Text => {
                 match text.alive() {
@@ -83,7 +83,7 @@ impl<'d> LevelUpMovePanel<'d> {
                     if a {
                         self.move_panel.names[self.move_panel.cursor] =
                         Some((pokemon_move, TextColor::Black));
-                        pokemon.replace_move(self.move_panel.cursor, &pokemon_move.id);
+                        pokemon.moves.add(Some(self.move_panel.cursor), &pokemon_move.id);
                         return Some((self.move_panel.cursor, pokemon_move));
                     }
                 }

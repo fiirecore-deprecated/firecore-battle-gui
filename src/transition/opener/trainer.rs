@@ -26,8 +26,8 @@ impl TrainerBattleOpener {
     }
 }
 
-impl<ID: Default> BattleOpener<ID> for TrainerBattleOpener {
-    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID>) {
+impl<ID: Default, const AS: usize> BattleOpener<ID, AS> for TrainerBattleOpener {
+    fn spawn(&mut self, ctx: &PokedexClientContext, opponent: &GuiRemotePlayer<ID, AS>) {
         if let Some(id) = &opponent.trainer {
             self.trainer = Some(ctx.trainer_textures.get(id).clone());
         }
@@ -40,8 +40,8 @@ impl<ID: Default> BattleOpener<ID> for TrainerBattleOpener {
     fn draw_below_panel(
         &self,
         ctx: &mut EngineContext,
-        player: &ActiveRenderer,
-        opponent: &ActiveRenderer,
+        player: &ActiveRenderer<AS>,
+        opponent: &ActiveRenderer<AS>,
     ) {
         draw_o_bottom(ctx, self.trainer.as_ref(), 144.0 - self.opener.offset, 74.0);
         self.opener.draw_below_panel(ctx, player, opponent);

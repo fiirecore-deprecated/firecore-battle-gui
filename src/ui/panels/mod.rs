@@ -1,13 +1,13 @@
-use ::battle::player::PlayerKnowable;
+use ::battle::party::PlayerParty;
 use pokedex::{
     engine::{
         input::{pressed, Control},
         util::{Entity, Reset},
         EngineContext,
     },
-    item::ItemRef,
+    item::ItemId,
     moves::MoveTarget,
-    pokemon::OwnedRefPokemon,
+    pokemon::owned::OwnedPokemon,
 };
 
 use crate::view::GuiPokemonView;
@@ -26,20 +26,20 @@ pub mod level;
 pub struct BattlePanel<'d> {
     alive: bool,
 
-    pub active: BattlePanels<'d>,
+    pub active: BattlePanels,
 
     pub battle: BattleOptions,
     pub fight: FightPanel<'d>,
     pub targets: TargetPanel,
 }
 
-pub enum BattlePanels<'d> {
+pub enum BattlePanels {
     Main,
     Fight,
-    Target(MoveTarget, Option<ItemRef<'d>>),
+    Target(MoveTarget, Option<ItemId>),
 }
 
-impl<'d> Default for BattlePanels<'d> {
+impl Default for BattlePanels {
     fn default() -> Self {
         Self::Main
     }
@@ -56,7 +56,7 @@ impl<'d> BattlePanel<'d> {
         }
     }
 
-    pub fn user(&mut self, instance: &OwnedRefPokemon<'d>) {
+    pub fn user(&mut self, instance: &OwnedPokemon<'d>) {
         self.battle.setup(instance);
         self.fight.user(instance);
         self.battle.cursor = 0;
@@ -65,14 +65,14 @@ impl<'d> BattlePanel<'d> {
         self.spawn();
     }
 
-    pub fn target<ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerKnowable<ID, P>) {
+    pub fn target<ID, P: GuiPokemonView<'d>, const AS: usize>(&mut self, targets: &PlayerParty<ID, usize, P, AS>) {
         self.targets.update_names(targets);
     }
 
     pub fn input(
         &mut self,
         ctx: &EngineContext,
-        pokemon: &OwnedRefPokemon<'d>,
+        pokemon: &OwnedPokemon<'d>,
     ) -> Option<BattlePanels> {
         if self.alive {
             match self.active {

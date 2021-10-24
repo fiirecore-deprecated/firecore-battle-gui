@@ -37,7 +37,6 @@ pub mod spawner;
 
 pub struct PokemonRenderer {
     // pub moves: MoveRenderer,
-
     pub pokemon: Option<Texture>,
     side: PokemonTexture,
 
@@ -135,6 +134,19 @@ impl PokemonRenderer {
                     );
                 }
             }
+        }
+    }
+}
+
+impl Default for PokemonRenderer {
+    fn default() -> Self {
+        Self {
+            pokemon: Default::default(),
+            side: PokemonTexture::Front,
+            pos: Default::default(),
+            spawner: Spawner::default(),
+            faint: Default::default(),
+            flicker: Default::default(),
         }
     }
 }

@@ -1,4 +1,4 @@
-use battle::pokemon::battle::stat::{BattleStatType, Stage};
+use battle::pokemon::stat::{BattleStatType, Stage};
 use pokedex::{
     ailment::Ailment,
     engine::{

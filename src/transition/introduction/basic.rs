@@ -13,7 +13,7 @@ use pokedex::{
     },
 };
 
-use battle::{player::PlayerKnowable, BattleType};
+use battle::{party::PlayerParty, BattleType};
 
 use crate::{
     context::BattleGuiContext,
@@ -51,7 +51,7 @@ impl BasicBattleIntroduction {
     }
 
     #[deprecated(note = "bad code, return vec of string (lines)")]
-    pub(crate) fn concatenate<'d, ID, P: GuiPokemonView<'d>>(party: &PlayerKnowable<ID, P>) -> String {
+    pub(crate) fn concatenate<'d, ID, P: GuiPokemonView<'d>, const AS: usize>(party: &PlayerParty<ID, usize, P, AS>) -> String {
         let mut string = String::with_capacity(
             party
                 .active_iter()
@@ -73,10 +73,10 @@ impl BasicBattleIntroduction {
         string
     }
 
-    pub(crate) fn common_setup<ID: Default>(
+    pub(crate) fn common_setup<ID: Default, const AS: usize>(
         &mut self,
         text: &mut MessageBox,
-        player: &GuiLocalPlayer<ID>,
+        player: &GuiLocalPlayer<ID, AS>,
     ) {
         text.push(MessagePage {
             lines: vec![format!("Go! {}!", Self::concatenate(&player.player))],
@@ -84,7 +84,7 @@ impl BasicBattleIntroduction {
         });
     }
 
-    pub(crate) fn draw_player(&self, ctx: &mut Context, player: &ActiveRenderer) {
+    pub(crate) fn draw_player<const AS: usize>(&self, ctx: &mut Context, player: &ActiveRenderer<AS>) {
         if self.counter < Self::PLAYER_DESPAWN {
             self.player.draw_region(
                 ctx,
@@ -111,14 +111,14 @@ impl BasicBattleIntroduction {
             )
         } else {
             for active in player.iter() {
-                active.renderer.draw(ctx, ZERO, Color::WHITE);
+                active.pokemon.draw(ctx, ZERO, Color::WHITE);
             }
         }
     }
 
-    pub(crate) fn draw_opponent(&self, ctx: &mut EngineContext, opponent: &ActiveRenderer) {
+    pub(crate) fn draw_opponent<const AS: usize>(&self, ctx: &mut EngineContext, opponent: &ActiveRenderer<AS>) {
         for active in opponent.iter() {
-            active.renderer.draw(ctx, ZERO, Color::WHITE);
+            active.pokemon.draw(ctx, ZERO, Color::WHITE);
             active.status.draw(ctx, self.offsets.0, 0.0);
         }
     }
@@ -143,13 +143,13 @@ impl BasicBattleIntroduction {
 
 }
 
-impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
+impl<ID: Default, const AS: usize> BattleIntroduction<ID, AS> for BasicBattleIntroduction {
     fn spawn(
         &mut self,
         _: &PokedexClientContext,
         _: BattleType,
-        player: &GuiLocalPlayer<ID>,
-        opponent: &GuiRemotePlayer<ID>,
+        player: &GuiLocalPlayer<ID, AS>,
+        opponent: &GuiRemotePlayer<ID, AS>,
         text: &mut MessageBox,
     ) {
         text.clear();
@@ -167,8 +167,8 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
         &mut self,
         ctx: &EngineContext,
         delta: f32,
-        player: &mut GuiLocalPlayer<ID>,
-        opponent: &mut GuiRemotePlayer<ID>,
+        player: &mut GuiLocalPlayer<ID, AS>,
+        opponent: &mut GuiRemotePlayer<ID, AS>,
         text: &mut MessageBox,
     ) {
         text.update(ctx, delta);
@@ -190,15 +190,15 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
         }
 
         if let Some(active) = player.renderer.get(0) {
-            if active.renderer.spawner.spawning() {
+            if active.pokemon.spawner.spawning() {
                 for active in player.renderer.iter_mut() {
-                    active.renderer.spawner.update(ctx, delta);
+                    active.pokemon.spawner.update(ctx, delta);
                 }
             } else if active.status.alive() {
                 self.offsets1(delta);
             } else if self.counter >= Self::PLAYER_T2 {
                 for active in player.renderer.iter_mut() {
-                    active.renderer.spawn();
+                    active.pokemon.spawn();
                     active.status.spawn();
                 }
             }
@@ -207,7 +207,7 @@ impl<ID: Default> BattleIntroduction<ID> for BasicBattleIntroduction {
         }
     }
 
-    fn draw(&self, ctx: &mut EngineContext, player: &ActiveRenderer, opponent: &ActiveRenderer) {
+    fn draw(&self, ctx: &mut EngineContext, player: &ActiveRenderer<AS>, opponent: &ActiveRenderer<AS>) {
         self.draw_opponent(ctx, opponent);
         self.draw_player(ctx, player);
     }

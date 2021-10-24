@@ -1,8 +1,8 @@
 use pokedex::{
     engine::{
+        audio::{play_sound, sound::Sound},
         graphics::position,
         tetra::{graphics::Texture, math::Vec2, Context},
-        audio::{sound::Sound, play_sound},
         EngineContext,
     },
     pokemon::PokemonId,
@@ -11,9 +11,10 @@ use pokedex::{
 
 use crate::context::BattleGuiContext;
 
+#[derive(Default)]
 pub struct Spawner {
     pub spawning: SpawnerState,
-    pub texture: Texture,
+    pub texture: Option<Texture>,
     pub id: Option<PokemonId>,
     pub x: f32,
 }
@@ -26,8 +27,13 @@ pub enum SpawnerState {
     Spawning,
 }
 
-impl Spawner {
+impl Default for SpawnerState {
+    fn default() -> Self {
+        Self::None
+    }
+}
 
+impl Spawner {
     const LEN: f32 = 20.0;
     const ORIGIN: f32 = 0.0;
     const OFFSET: f32 = -5.0;
@@ -38,7 +44,7 @@ impl Spawner {
             spawning: SpawnerState::None,
             x: 0.0,
             id: id,
-            texture: ctx.pokeball.clone(),
+            texture: Some(ctx.pokeball.clone()),
         }
     }
 
@@ -75,10 +81,16 @@ impl Spawner {
 
     pub fn draw(&self, ctx: &mut Context, origin: Vec2<f32>, texture: &Texture) {
         match self.spawning {
-            SpawnerState::Throwing => self.texture.draw(
-                ctx, 
-                position(origin.x + self.x + Self::OFFSET, origin.y + Self::f(self.x)).origin(Vec2::new(6.0, 6.0)).rotation(self.x)
-            ),
+            SpawnerState::Throwing => {
+                if let Some(texture) = self.texture.as_ref() {
+                    texture.draw(
+                        ctx,
+                        position(origin.x + self.x + Self::OFFSET, origin.y + Self::f(self.x))
+                            .origin(Vec2::new(6.0, 6.0))
+                            .rotation(self.x),
+                    )
+                }
+            }
             SpawnerState::Spawning => {
                 let h = texture.height() as f32;
                 let scale = self.x * h;
@@ -88,7 +100,7 @@ impl Spawner {
                     y = max;
                 }
                 texture.draw(ctx, position(origin.x, y)); // change color of texture when spawning here
-            },
+            }
             SpawnerState::None | SpawnerState::Start => (),
         }
     }
@@ -96,5 +108,4 @@ impl Spawner {
     pub fn spawning(&self) -> bool {
         self.spawning != SpawnerState::None
     }
-
 }

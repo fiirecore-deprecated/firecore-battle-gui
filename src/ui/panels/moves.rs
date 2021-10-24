@@ -7,13 +7,13 @@ use pokedex::{
         util::Reset,
         EngineContext,
     },
-    moves::MoveRef,
-    pokemon::OwnedRefPokemon,
+    moves::Move,
+    pokemon::owned::OwnedPokemon,
 };
 
 pub struct MovePanel<'d> {
     pub cursor: usize,
-    pub names: [Option<(MoveRef<'d>, TextColor)>; 4],
+    pub names: [Option<(&'d Move, TextColor)>; 4],
 }
 
 impl<'d> MovePanel<'d> {
@@ -24,10 +24,10 @@ impl<'d> MovePanel<'d> {
         }
     }
 
-    pub fn update_names(&mut self, instance: &OwnedRefPokemon<'d>) {
+    pub fn update_names(&mut self, instance: &OwnedPokemon<'d>) {
         for (index, instance) in instance.moves.iter().enumerate() {
             self.names[index] = Some((
-                instance.m,
+                instance.0,
                 if instance.empty() {
                     TextColor::Red
                 } else {

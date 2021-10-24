@@ -1,4 +1,4 @@
-use battle::pokemon::battle::InitUnknownPokemon;
+use crate::view::InitUnknownPokemon;
 use pokedex::{
     context::PokedexClientContext,
     engine::{
@@ -9,7 +9,7 @@ use pokedex::{
         EngineContext,
     },
     gui::health::HealthBar,
-    pokemon::{Health, Level, OwnedRefPokemon, Pokemon},
+    pokemon::{Health, Level, owned::OwnedPokemon, Pokemon},
 };
 
 use log::warn;
@@ -80,7 +80,7 @@ impl PokemonStatusGui {
         ctx: &BattleGuiContext,
         dex: &PokedexClientContext,
         index: BattleGuiPositionIndex,
-        pokemon: Option<&OwnedRefPokemon<'d>>,
+        pokemon: Option<&OwnedPokemon<'d>>,
     ) -> Self {
         let (((background, origin, small), data_pos, hb), position) = Self::attributes(ctx, index);
         Self {
@@ -242,7 +242,7 @@ impl PokemonStatusGui {
         self.health.0.update(delta);
     }
 
-    pub fn update_exp<'d>(&mut self, delta: f32, pokemon: &OwnedRefPokemon<'d>) {
+    pub fn update_exp<'d>(&mut self, delta: f32, pokemon: &OwnedPokemon<'d>) {
         if self.data.active {
             if self.small {
                 self.exp.update_exp(pokemon.level, pokemon, true)
@@ -274,7 +274,7 @@ impl PokemonStatusGui {
 
     pub fn update_gui<'d>(
         &mut self,
-        pokemon: Option<&OwnedRefPokemon<'d>>,
+        pokemon: Option<&OwnedPokemon<'d>>,
         previous: Option<Level>,
         reset: bool,
     ) {
@@ -374,7 +374,7 @@ impl PokemonStatusData {
     pub fn update<'d>(
         &mut self,
         previous: Level,
-        pokemon: &OwnedRefPokemon<'d>,
+        pokemon: &OwnedPokemon<'d>,
         reset: bool,
         health: &mut HealthBar,
         exp: &mut ExperienceBar,

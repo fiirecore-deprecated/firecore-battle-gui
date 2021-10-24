@@ -1,16 +1,21 @@
-use pokedex::{ailment::LiveAilment, pokemon::{Experience, Health, Level, OwnedRefPokemon, PokemonRef}};
+use pokedex::{
+    ailment::LiveAilment,
+    moves::PP,
+    pokemon::{owned::OwnedPokemon, Experience, Health, Level, Pokemon},
+};
 
 use battle::{
-    party::PlayerParty,
-    player::PlayerKnowable,
-    pokemon::{PokemonView, battle::InitUnknownPokemon},
+    party::{PlayerParty, PartyIndex as PI},
+    pokemon::{remote::UnknownPokemon, PokemonView},
 };
+
+pub type InitUnknownPokemon<'d> = UnknownPokemon<&'d Pokemon>;
 
 type Active = usize;
 type PartyIndex = usize;
 
 #[deprecated(note = "edit")]
-pub trait PlayerView<'d, ID> {
+pub trait PlayerView<'d, ID, const AS: usize> {
     fn id(&self) -> &ID;
 
     fn name(&self) -> &str;
@@ -19,14 +24,16 @@ pub trait PlayerView<'d, ID> {
 
     fn active_mut(&mut self, active: Active) -> Option<&mut dyn GuiPokemonView<'d>>;
 
-    fn active_eq(&self, active: Active, index: &Option<PartyIndex>) -> bool;
+    fn active_eq(&self, active: Active, index: Option<PartyIndex>) -> bool;
 
     fn pokemon(&self, index: PartyIndex) -> Option<&dyn GuiPokemonView<'d>>;
 
     fn replace(&mut self, active: Active, new: Option<PartyIndex>);
 }
 
-impl<'d, ID, P: GuiPokemonView<'d>> PlayerView<'d, ID> for PlayerKnowable<ID, P> {
+impl<'d, ID, A: PI, P: GuiPokemonView<'d>, const AS: usize> PlayerView<'d, ID, AS>
+    for PlayerParty<ID, A, P, AS>
+{
     fn id(&self) -> &ID {
         &self.id
     }
@@ -43,10 +50,10 @@ impl<'d, ID, P: GuiPokemonView<'d>> PlayerView<'d, ID> for PlayerKnowable<ID, P>
         PlayerParty::active_mut(self, active).map(|p| p as _)
     }
 
-    fn active_eq(&self, active: usize, index: &Option<usize>) -> bool {
+    fn active_eq(&self, active: usize, index: Option<usize>) -> bool {
         self.active
             .get(active)
-            .map(|i| i == index)
+            .map(|i| i.as_ref().map(A::index) == index)
             .unwrap_or_default()
     }
 
@@ -57,12 +64,10 @@ impl<'d, ID, P: GuiPokemonView<'d>> PlayerView<'d, ID> for PlayerKnowable<ID, P>
     fn replace(&mut self, active: usize, new: Option<usize>) {
         PlayerParty::replace(self, active, new)
     }
-
 }
 
 pub trait GuiPokemonView<'d>: PokemonView {
-
-    fn pokemon(&self) -> PokemonRef<'d>;
+    fn pokemon(&self) -> &'d Pokemon;
 
     fn name(&self) -> &str;
 
@@ -77,19 +82,20 @@ pub trait GuiPokemonView<'d>: PokemonView {
 
     fn set_exp(&mut self, experience: Experience);
 
-    fn instance(&mut self) -> Option<&mut OwnedRefPokemon<'d>>;
+    fn instance(&mut self) -> Option<&mut OwnedPokemon<'d>>;
 
     fn exp(&self) -> Experience;
+
+    fn decrement_pp(&mut self, pp: PP);
 }
 
-impl<'d> GuiPokemonView<'d> for OwnedRefPokemon<'d> {
-
-    fn pokemon(&self) -> PokemonRef<'d> {
+impl<'d> GuiPokemonView<'d> for OwnedPokemon<'d> {
+    fn pokemon(&self) -> &'d Pokemon {
         self.pokemon
     }
 
     fn name(&self) -> &str {
-        OwnedRefPokemon::name(self)
+        OwnedPokemon::name(self)
     }
 
     fn set_level(&mut self, level: Level) {
@@ -120,18 +126,21 @@ impl<'d> GuiPokemonView<'d> for OwnedRefPokemon<'d> {
         self.experience = experience;
     }
 
-    fn instance(&mut self) -> Option<&mut OwnedRefPokemon<'d>> {
+    fn instance(&mut self) -> Option<&mut OwnedPokemon<'d>> {
         Some(self)
     }
 
     fn exp(&self) -> Experience {
         self.experience
     }
+
+    fn decrement_pp(&mut self, pp: PP) {
+        log::debug!("todo: decrement pp");
+    }
 }
 
 impl<'d> GuiPokemonView<'d> for Option<InitUnknownPokemon<'d>> {
-
-    fn pokemon(&self) -> PokemonRef<'d> {
+    fn pokemon(&self) -> &'d Pokemon {
         match self {
             Some(u) => u.pokemon,
             None => todo!(),
@@ -175,7 +184,7 @@ impl<'d> GuiPokemonView<'d> for Option<InitUnknownPokemon<'d>> {
         self.as_mut().map(|u| u.ailment.as_mut()).flatten()
     }
 
-    fn instance(&mut self) -> Option<&mut OwnedRefPokemon<'d>> {
+    fn instance(&mut self) -> Option<&mut OwnedPokemon<'d>> {
         None
     }
 
@@ -184,4 +193,6 @@ impl<'d> GuiPokemonView<'d> for Option<InitUnknownPokemon<'d>> {
     fn exp(&self) -> Experience {
         0
     }
+
+    fn decrement_pp(&mut self, _: PP) {}
 }

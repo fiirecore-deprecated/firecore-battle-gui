@@ -5,7 +5,7 @@ use pokedex::{
         text::TextColor,
         EngineContext,
     },
-    moves::OwnedRefMove,
+    moves::owned::OwnedMove,
 };
 
 pub struct MoveInfoPanel {
@@ -23,9 +23,9 @@ impl MoveInfoPanel {
         }
     }
 
-    pub fn update_move<'d>(&mut self, instance: &OwnedRefMove<'d>) {
-        let move_ref = &instance.m;
-        self.pp = format!("{}/{}", instance.pp, move_ref.pp);
+    pub fn update_move<'d>(&mut self, instance: &OwnedMove<'d>) {
+        let move_ref = instance.0;
+        self.pp = format!("{}/{}", instance.uses(), move_ref.pp);
         self.move_type = format!("TYPE/{:?}", move_ref.pokemon_type);
     }
 

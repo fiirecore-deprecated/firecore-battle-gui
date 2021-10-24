@@ -34,8 +34,8 @@ impl WildBattleOpener {
     }
 }
 
-impl<ID: Default> BattleOpener<ID> for WildBattleOpener {
-    fn spawn(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID>) {}
+impl<ID, const AS: usize> BattleOpener<ID, AS> for WildBattleOpener {
+    fn spawn(&mut self, _: &PokedexClientContext, _: &GuiRemotePlayer<ID, AS>) {}
 
     fn update(&mut self, delta: f32) {
         self.opener.update(delta);
@@ -57,12 +57,12 @@ impl<ID: Default> BattleOpener<ID> for WildBattleOpener {
     fn draw_below_panel(
         &self,
         ctx: &mut EngineContext,
-        player: &ActiveRenderer,
-        opponent: &ActiveRenderer,
+        player: &ActiveRenderer<AS>,
+        opponent: &ActiveRenderer<AS>,
     ) {
         for active in opponent.iter() {
             active
-                .renderer
+                .pokemon
                 .draw(ctx, Vec2::new(-self.opener.offset, 0.0), LIGHTGRAY);
         }
         self.opener.draw_below_panel(ctx, player, opponent);

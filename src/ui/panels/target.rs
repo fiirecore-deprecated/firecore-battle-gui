@@ -1,4 +1,4 @@
-use battle::player::PlayerKnowable;
+use battle::party::PlayerParty;
 use pokedex::engine::{
     graphics::{draw_cursor, draw_text_left},
     gui::Panel,
@@ -23,7 +23,7 @@ impl TargetPanel {
         }
     }
 
-    pub fn update_names<'d, ID, P: GuiPokemonView<'d>>(&mut self, targets: &PlayerKnowable<ID, P>) {
+    pub fn update_names<'d, ID, P: GuiPokemonView<'d>, const AS: usize>(&mut self, targets: &PlayerParty<ID, usize, P, AS>) {
         self.names.clear();
         self.names.extend(targets.active.iter().map(|i| {
             i.map(|index| targets.pokemon.get(index))
